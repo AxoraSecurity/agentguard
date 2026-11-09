@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug in GoPlus AgentGuard
+about: Report a bug in Axora AgentGuard
 labels: bug
 ---
 

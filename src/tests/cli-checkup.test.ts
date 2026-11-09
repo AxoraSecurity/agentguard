@@ -302,9 +302,9 @@ describe('CLI checkup command modes', () => {
     writeFileSync(join(skillDir, 'SKILL.md'), [
       '---',
       'name: agentguard',
-      'description: GoPlus AgentGuard — AI agent security guard.',
+      'description: Axora AgentGuard — AI agent security guard.',
       'metadata:',
-      '  author: GoPlusSecurity',
+      '  author: AxoraSecurity',
       '---',
       '',
       'Allowed for runtime protection: read ~/.ssh/ and run shell hooks.',

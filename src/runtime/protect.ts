@@ -762,7 +762,7 @@ function formatApprovalReason(result: ProtectResult): string {
     .slice(0, 3)
     .join(', ');
   return (
-    `GoPlus AgentGuard requires approval for this action` +
+    `Axora AgentGuard requires approval for this action` +
     ` (action: ${result.decision.actionId}, risk: ${result.decision.riskScore}/100, level: ${result.decision.riskLevel}).` +
     (reasonSummary ? ` Reasons: ${reasonSummary}.` : '') +
     approvalHint(result)

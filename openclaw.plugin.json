@@ -1,6 +1,6 @@
 {
   "id": "agentguard",
-  "name": "GoPlus AgentGuard",
+  "name": "Axora AgentGuard",
   "description": "AI agent security framework — blocks dangerous commands, prevents data leaks, and protects secrets",
   "skills": ["./skills"],
   "activation": {

@@ -163,7 +163,7 @@ function buildSarif(input) {
         'security-severity': toSecuritySeverity(r.severity),
         'problem.severity': r.severity.toLowerCase(),
       },
-      helpUri: 'https://github.com/GoPlusSecurity/agentguard',
+      helpUri: 'https://github.com/AxoraSecurity/agentguard',
     }));
 
   // Build results
@@ -202,9 +202,9 @@ function buildSarif(input) {
     runs: [{
       tool: {
         driver: {
-          name: 'GoPlus AgentGuard',
+          name: 'Axora AgentGuard',
           version: '1.1',
-          informationUri: 'https://github.com/GoPlusSecurity/agentguard',
+          informationUri: 'https://github.com/AxoraSecurity/agentguard',
           rules: driverRules,
         },
       },

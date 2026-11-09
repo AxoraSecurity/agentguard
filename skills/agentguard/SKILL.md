@@ -1,10 +1,10 @@
 ---
 name: agentguard
-description: GoPlus AgentGuard — AI agent security guard. Run /agentguard checkup for a full security health check, scans all installed skills, checks credentials, permissions, and network exposure, then delivers an HTML report directly to you. Also use for scanning third-party code, blocking dangerous commands, preventing data leaks, evaluating action safety, and running daily security patrols.
+description: Axora AgentGuard — AI agent security guard. Run /agentguard checkup for a full security health check, scans all installed skills, checks credentials, permissions, and network exposure, then delivers an HTML report directly to you. Also use for scanning third-party code, blocking dangerous commands, preventing data leaks, evaluating action safety, and running daily security patrols.
 license: MIT
 compatibility: Requires Node.js 18+. Optional GoPlus API credentials for enhanced Web3 simulation.
 metadata:
-  author: GoPlusSecurity
+  author: AxoraSecurity
   version: "1.1"
   optional_env: "GOPLUS_API_KEY, GOPLUS_API_SECRET (for Web3 transaction simulation only)"
 filesystem-access:
@@ -34,9 +34,9 @@ allowed-tools: Read, Write, Grep, Glob, Bash(node *trust-cli.js *) Bash(node *ac
 argument-hint: "[scan|action|patrol|subscribe|trust|report|config|checkup|cli] [args...] [--format sarif|json] [--output <file>]"
 ---
 
-# GoPlus AgentGuard — AI Agent Security Framework
+# Axora AgentGuard — AI Agent Security Framework
 
-You are a security auditor powered by the GoPlus AgentGuard framework. Route the user's request based on the first argument.
+You are a security auditor powered by the Axora AgentGuard framework. Route the user's request based on the first argument.
 
 ## Important: Resolving Script Paths
 
@@ -351,7 +351,7 @@ Record the git context result (`committed` / `not-ignored` / `gitignored` / `no-
 ### Output Format
 
 ```
-## GoPlus AgentGuard Security Scan Report
+## Axora AgentGuard Security Scan Report
 
 **Target**: <scanned path>
 **Risk Level**: CRITICAL | HIGH | MEDIUM | LOW
@@ -512,7 +512,7 @@ Always combine script results with the policy-based checks (webhook domains, sec
 ### Output Format
 
 ```
-## GoPlus AgentGuard Action Evaluation
+## Axora AgentGuard Action Evaluation
 
 **Action**: <action type and description>
 **Decision**: ALLOW | DENY | CONFIRM
@@ -664,7 +664,7 @@ Check for expired, stale, or over-privileged trust records.
 ### Patrol Report Format
 
 ```
-## GoPlus AgentGuard Patrol Report
+## Axora AgentGuard Patrol Report
 
 **Timestamp**: <ISO datetime>
 **Agent Roots**: <detected agent roots>
@@ -725,7 +725,7 @@ Generate and show the OpenClaw cron registration command:
 ```bash
 openclaw cron add \
   --name "agentguard-patrol" \
-  --description "GoPlus AgentGuard daily security patrol" \
+  --description "Axora AgentGuard daily security patrol" \
   --cron "<schedule>" \
   --tz "<timezone>" \
   --session "isolated" \
@@ -823,7 +823,7 @@ Show the current patrol state.
 
 ## Subcommand: trust
 
-Manage skill trust levels using the GoPlus AgentGuard registry.
+Manage skill trust levels using the Axora AgentGuard registry.
 
 ### Trust Levels
 
@@ -987,7 +987,7 @@ If scripts are not available, help the user inspect `data/registry.json` directl
 
 ## Subcommand: config
 
-Set the GoPlus AgentGuard protection level.
+Set the Axora AgentGuard protection level.
 
 ### Protection Levels
 
@@ -1016,7 +1016,7 @@ If no level is specified, read and display the current config.
 
 ## Subcommand: report
 
-Display recent security events from the GoPlus AgentGuard audit log.
+Display recent security events from the Axora AgentGuard audit log.
 
 ### Log Location
 
@@ -1038,7 +1038,7 @@ The `initiating_skill` field is present when the action was triggered by a skill
 ### Output Format
 
 ```
-## GoPlus AgentGuard Security Report
+## Axora AgentGuard Security Report
 
 **Events**: <total count>
 **Blocked**: <deny count>
@@ -1290,7 +1290,7 @@ The script outputs the HTML file path to stdout (e.g. `/tmp/agentguard-checkup-1
 **You MUST output this summary after the report generates.** This is the primary output the user sees. Do NOT skip this step — always show the score, dimension table, and report path:
 
 ```
-## 🦞 GoPlus AgentGuard Health Checkup
+## 🦞 Axora AgentGuard Health Checkup
 
 **Overall Health Score**: <score> / 100 (Tier <grade> — <label>)
 **Quote**: "<lobster quote>"

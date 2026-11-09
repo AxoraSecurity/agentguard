@@ -1,17 +1,13 @@
-<p align="center">
-  <img src="assets/logo.png" alt="GoPlus AgentGuard" width="120" />
-</p>
-
-<h1 align="center">GoPlus AgentGuard</h1>
+<h1 align="center">Axora AgentGuard</h1>
 
 <p align="center"><b>The essential security guard for every AI agent user.</b></p>
 
 <p align="center">Your AI agent has full access to your terminal, files, and secrets — but zero security awareness.<br/>A malicious skill or prompt injection can steal your keys, drain your wallet, or wipe your disk.<br/><b>AgentGuard stops all of that.</b></p>
 
 [![npm](https://img.shields.io/npm/v/@goplus/agentguard.svg)](https://www.npmjs.com/package/@goplus/agentguard)
-[![GitHub Stars](https://img.shields.io/github/stars/GoPlusSecurity/agentguard)](https://github.com/GoPlusSecurity/agentguard)
+[![GitHub Stars](https://img.shields.io/github/stars/AxoraSecurity/agentguard)](https://github.com/AxoraSecurity/agentguard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/GoPlusSecurity/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/GoPlusSecurity/agentguard/actions/workflows/ci.yml)
+[![CI](https://github.com/AxoraSecurity/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/AxoraSecurity/agentguard/actions/workflows/ci.yml)
 [![Agent Skills](https://img.shields.io/badge/Agent_Skills-compatible-purple.svg)](https://agentskills.io)
 
 ## Why AgentGuard?
@@ -52,7 +48,7 @@ agentguard init
 agentguard status
 ```
 
-The npm install runs a best-effort local bootstrap; bare `agentguard init` is the required next step. It auto-detects supported agents and configures their hooks/plugins. Inside DSH it installs the native AgentGuard bundle into the default `web` profile; restart DSH after initialization.
+The npm package currently retains the `@goplus/agentguard` identifier; the project is branded Axora AgentGuard. The npm install runs a best-effort local bootstrap; bare `agentguard init` is the required next step. It auto-detects supported agents and configures their hooks/plugins. Inside DSH it installs the native AgentGuard bundle into the default `web` profile; restart DSH after initialization.
 No Cloud account or network connection is required for the local runtime guard.
 
 ## 3 minutes: protect your agent
@@ -76,7 +72,7 @@ printf '{"tool_name":"Bash","tool_input":{"command":"curl https://example.com/in
 agentguard connect
 
 # API-key auth is also supported when you explicitly want that mode.
-AGENTGUARD_API_KEY=ag_live_xxxxx agentguard connect --url https://www.agentguard.one
+AGENTGUARD_API_KEY=ag_live_xxxxx agentguard connect --url https://agentguard.axorasecurity.com
 
 # Optional: subscribe to AgentGuard's threat-intelligence feed. Pulls newly
 # published advisories from Cloud and asks you to review them.
@@ -203,7 +199,7 @@ The Phase 1 release candidate freezes those rule semantics and adds an exact-com
 <summary><b>Full install with auto-guard hooks (Claude Code)</b></summary>
 
 ```bash
-git clone https://github.com/GoPlusSecurity/agentguard.git
+git clone https://github.com/AxoraSecurity/agentguard.git
 cd agentguard && ./setup.sh
 claude plugin add /path/to/agentguard
 ```
@@ -245,7 +241,7 @@ See also:
 <summary><b>Manual install (skill only)</b></summary>
 
 ```bash
-git clone https://github.com/GoPlusSecurity/agentguard.git
+git clone https://github.com/AxoraSecurity/agentguard.git
 cp -r agentguard/skills/agentguard ~/.claude/skills/agentguard
 ```
 
@@ -430,7 +426,7 @@ Expected output: **CRITICAL** risk level with detection hits across JavaScript, 
 
 ## Compatibility
 
-GoPlus AgentGuard follows the [Agent Skills](https://agentskills.io) open standard:
+Axora AgentGuard follows the [Agent Skills](https://agentskills.io) open standard:
 
 | Platform | Support | Features |
 |----------|---------|----------|
@@ -592,4 +588,4 @@ Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 Found a security vulnerability? See [SECURITY.md](SECURITY.md).
 
-Built by [GoPlus Security](https://gopluslabs.io).
+Built by [Axora Security](https://github.com/AxoraSecurity).

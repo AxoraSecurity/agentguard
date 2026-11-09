@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * GoPlus AgentGuard — Checkup Report Generator
+ * Axora AgentGuard — Checkup Report Generator
  *
  * Reads checkup results as JSON from stdin, generates a self-contained HTML
  * report with lobster mascot and opens it in the default browser.
@@ -642,7 +642,7 @@ function pixelLobster(grade, color) {
 function generateReport(data) {
   const { composite_score = 0, dimensions = {}, recommendations = [], skills_scanned = 0, dsh_plugins_scanned = 0, dsh_plugins = [], protection_level = 'unknown', timestamp } = data;
   const tier = getTier(composite_score);
-  const ctaUrl = `https://www.agentguard.one?utm_source=checkup&utm_medium=cli&utm_campaign=health_report&score=${composite_score}`;
+  const ctaUrl = `https://agentguard.axorasecurity.com?utm_source=checkup&utm_medium=cli&utm_campaign=health_report&score=${composite_score}`;
   const ts = timestamp || new Date().toISOString();
   const totalFindings = Object.values(dimensions).reduce((s, d) => s + (d.findings || []).length, 0);
   const scannedArtifacts = skills_scanned + dsh_plugins_scanned;
@@ -785,7 +785,7 @@ function generateReport(data) {
   }
   // Always add upgrade CTA as last
   if (!allRecs.some(r => r.text.toLowerCase().includes('upgrade') || r.text.includes('升级'))) {
-    allRecs.push({ severity: 'LOW', text: 'Upgrade to enhanced Skill scanning with GoPlus AgentGuard for 24/7 real-time monitoring and automated alerts.', zh: '升级到更强的 Skill 扫描能力 — GoPlus AgentGuard 提供 7×24 实时监控与自动告警。' });
+    allRecs.push({ severity: 'LOW', text: 'Upgrade to enhanced Skill scanning with Axora AgentGuard for 24/7 real-time monitoring and automated alerts.', zh: '升级到更强的 Skill 扫描能力 — Axora AgentGuard 提供 7×24 实时监控与自动告警。' });
   }
 
   const recsHtml = allRecs.length > 0
@@ -869,7 +869,7 @@ body{background:#0a0e14;color:#dfe2eb;font-family:'Inter',sans-serif}
   <div class="flex items-center gap-2 sm:gap-3 header-btns">
     <span class="text-[#849588] text-xs font-['Space_Grotesk'] tracking-[0.15em] uppercase header-meta" data-i18n="prot_mode">${protection_level} mode</span>
     <span class="text-[#849588] text-xs header-meta">${ts.slice(0,10)}</span>
-    <a href="https://github.com/GoPlusSecurity/agentguard" target="_blank" class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 bg-[#262a31] border border-[#3a4a3f]/30 rounded-lg text-[11px] font-semibold text-[#849588] hover:text-[#dfe2eb] hover:border-[#849588]/50 transition-all no-underline">
+    <a href="https://github.com/AxoraSecurity/agentguard" target="_blank" class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 bg-[#262a31] border border-[#3a4a3f]/30 rounded-lg text-[11px] font-semibold text-[#849588] hover:text-[#dfe2eb] hover:border-[#849588]/50 transition-all no-underline">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
       GitHub
     </a>
@@ -1178,7 +1178,7 @@ body{background:#0a0e14;color:#dfe2eb;font-family:'Inter',sans-serif}
     en:_sharePick(_shareEn[_grade]||_shareEn.B),
   };
   function getShareText(){return shareTexts[curLang]||shareTexts.en;}
-  const shareUrl='https://www.agentguard.one';
+  const shareUrl='https://agentguard.axorasecurity.com';
 
   function showToast(msg){
     const t=document.createElement('div');
@@ -1268,8 +1268,8 @@ body{background:#0a0e14;color:#dfe2eb;font-family:'Inter',sans-serif}
     });
 
     // Footer
-    ctx.fillStyle='#849588';ctx.font='500 11px Inter,sans-serif';ctx.fillText(curLang==='zh'?'由 GoPlus Security 提供支持':'Powered by GoPlus Security',80,H-70);
-    ctx.fillStyle='#3a4a3f';ctx.fillText('www.agentguard.one',80,H-55);
+    ctx.fillStyle='#849588';ctx.font='500 11px Inter,sans-serif';ctx.fillText(curLang==='zh'?'由 Axora Security 提供支持':'Powered by Axora Security',80,H-70);
+    ctx.fillStyle='#3a4a3f';ctx.fillText('agentguard.axorasecurity.com',80,H-55);
 
     return new Promise(res=>c.toBlob(res,'image/png'));
   }

@@ -1,6 +1,6 @@
 # SDK Usage
 
-Use GoPlus AgentGuard as a library in your own project.
+Use Axora AgentGuard as a library in your own project.
 
 ## Installation
 

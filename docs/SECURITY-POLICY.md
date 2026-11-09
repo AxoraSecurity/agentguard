@@ -1,4 +1,4 @@
-# GoPlus AgentGuard Security Policy
+# Axora AgentGuard Security Policy
 
 Unified security policy reference for all platforms (Claude Code, OpenClaw, and future integrations).
 

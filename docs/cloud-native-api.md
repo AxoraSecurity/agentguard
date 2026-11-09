@@ -7,7 +7,7 @@ This document summarizes the Cloud APIs that a local/native AgentGuard runtime s
 Production base URL:
 
 ```text
-https://www.agentguard.one
+https://agentguard.axorasecurity.com
 ```
 
 All protected runtime APIs require an AgentGuard API key:

@@ -1,11 +1,11 @@
-# Contributing to GoPlus AgentGuard
+# Contributing to Axora AgentGuard
 
-Thanks for your interest in contributing to GoPlus AgentGuard! Here's how to get started.
+Thanks for your interest in contributing to Axora AgentGuard! Here's how to get started.
 
 ## Development Setup
 
 ```bash
-git clone https://github.com/GoPlusSecurity/agentguard.git
+git clone https://github.com/AxoraSecurity/agentguard.git
 cd agentguard
 npm install
 npm run build
@@ -55,7 +55,7 @@ Action detectors go in `src/action/detectors/`. They evaluate runtime actions an
 
 ## Reporting Issues
 
-Please open an issue at https://github.com/GoPlusSecurity/agentguard/issues with:
+Please open an issue at https://github.com/AxoraSecurity/agentguard/issues with:
 - What you expected to happen
 - What actually happened
 - Steps to reproduce

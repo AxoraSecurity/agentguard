@@ -1,4 +1,4 @@
-"""GoPlus AgentGuard native plugin for Hermes Agent.
+"""Axora AgentGuard native plugin for Hermes Agent.
 
 Hermes imports this package and calls :func:`register` at load time.
 """

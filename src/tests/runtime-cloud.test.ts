@@ -15,7 +15,7 @@ import {
 import { actionFingerprint, approvePendingApproval, cleanupExpiredApprovals, listPendingApprovals } from '../runtime/approvals.js';
 import { exitCodeForDecision, formatProtectResult, protectAction } from '../runtime/protect.js';
 import type { ProtectResult } from '../runtime/protect.js';
-import { connectAgentJwt, connectCloud, disconnectCloud, getAgentGuardPaths } from '../config.js';
+import { connectAgentJwt, connectCloud, defaultConfig, disconnectCloud, getAgentGuardPaths } from '../config.js';
 import {
   AgentGuardCloudClient,
   buildCloudActionRequest,
@@ -27,6 +27,10 @@ import type { RuntimeAction, RuntimeAuditEvent } from '../runtime/types.js';
 process.env.AGENTGUARD_BEHAVIOR_STATE_PATH = join(tmpdir(), `agentguard-runtime-behavior-${process.pid}.json`);
 
 describe('Runtime Cloud bridge', () => {
+  it('uses the Axora Cloud URL by default', () => {
+    assert.equal(defaultConfig().cloudUrl, 'https://agentguard.axorasecurity.com');
+  });
+
   it('provides offline privacy defaults for LLM traffic enforcement', () => {
     const policy = getDefaultEffectiveRuntimePolicy();
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * GoPlus AgentGuard Action CLI — lightweight wrapper for ActionScanner operations.
+ * Axora AgentGuard Action CLI — lightweight wrapper for ActionScanner operations.
  *
  * Usage:
  *   node action-cli.js decide --type <action_type> [action-specific args]

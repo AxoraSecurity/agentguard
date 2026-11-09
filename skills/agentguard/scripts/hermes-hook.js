@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * GoPlus AgentGuard Hermes shell hook.
+ * Axora AgentGuard Hermes shell hook.
  *
  * Hermes shell hooks read JSON from stdin and use stdout JSON to influence
  * behavior. For pre_tool_call, returning a block decision vetoes tool
@@ -159,8 +159,8 @@ function outputBlock(reason) {
     action: 'block',
     decision: 'block',
     block: true,
-    message: reason || 'GoPlus AgentGuard blocked this action',
-    reason: reason || 'GoPlus AgentGuard blocked this action',
+    message: reason || 'Axora AgentGuard blocked this action',
+    reason: reason || 'Axora AgentGuard blocked this action',
   }));
   process.exit(0);
 }
@@ -213,18 +213,18 @@ function debugLog(message, details) {
 async function main() {
   const input = await readStdin();
   if (!input) {
-    outputBlock('GoPlus AgentGuard: invalid or missing Hermes hook payload');
+    outputBlock('Axora AgentGuard: invalid or missing Hermes hook payload');
   }
 
   const validationError = isPreHook(input) ? validatePreToolPayload(input) : null;
   if (validationError) {
-    outputBlock(`GoPlus AgentGuard: ${validationError}`);
+    outputBlock(`Axora AgentGuard: ${validationError}`);
   }
 
   const engine = await loadEngine();
   if (!engine) {
     if (shouldFailClosed(input)) {
-      outputBlock('GoPlus AgentGuard: unable to load Hermes hook engine; blocking fail-closed');
+      outputBlock('Axora AgentGuard: unable to load Hermes hook engine; blocking fail-closed');
     }
     outputAllow();
   }
@@ -294,7 +294,7 @@ function formatDecisionReason(result, fallback) {
     .slice(0, 3)
     .join(', ');
   const suffix = titles ? ` Reasons: ${titles}.` : '';
-  return `GoPlus AgentGuard ${fallback} (action: ${result.decision.actionId}, risk: ${result.decision.riskScore}/100, level: ${result.decision.riskLevel}).${suffix}`;
+  return `Axora AgentGuard ${fallback} (action: ${result.decision.actionId}, risk: ${result.decision.riskScore}/100, level: ${result.decision.riskLevel}).${suffix}`;
 }
 
 main();

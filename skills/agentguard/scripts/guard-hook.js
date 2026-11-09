@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * GoPlus AgentGuard PreToolUse / PostToolUse Hook (Claude Code)
+ * Axora AgentGuard PreToolUse / PostToolUse Hook (Claude Code)
  *
  * Uses the common adapter + engine architecture.
  * Reads Claude Code hook input from stdin, delegates to evaluateHook(),
@@ -37,7 +37,7 @@ try {
     evaluateHook = gs.evaluateHook;
     loadConfig = gs.loadConfig;
   } catch {
-    process.stderr.write('GoPlus AgentGuard: unable to load engine, allowing action\n');
+    process.stderr.write('Axora AgentGuard: unable to load engine, allowing action\n');
     process.exit(0);
   }
 }

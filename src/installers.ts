@@ -861,7 +861,7 @@ function register(api) {
 
 module.exports = Object.defineProperties(register, {
   id: { enumerable: true, value: 'agentguard' },
-  name: { enumerable: true, value: 'GoPlus AgentGuard' },
+  name: { enumerable: true, value: 'Axora AgentGuard' },
   description: {
     enumerable: true,
     value: 'AI agent security framework - blocks dangerous commands, prevents data leaks, and protects secrets',
@@ -894,7 +894,7 @@ function openClawPackageManifest(agent: 'openclaw' | 'qclaw' = 'openclaw'): unkn
 function openClawPluginManifest(): unknown {
   return {
     id: 'agentguard',
-    name: 'GoPlus AgentGuard',
+    name: 'Axora AgentGuard',
     description: 'AI agent security framework - blocks dangerous commands, prevents data leaks, and protects secrets',
     activation: {
       onStartup: true,

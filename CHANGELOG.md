@@ -139,7 +139,7 @@
 - Feed subscription state now stores newest-first pull records with per-run `newSeenIds` and `foundIds` instead of a single object snapshot.
 
 ### Fixed
-- `agentguard checkup` now excludes the managed GoPlus AgentGuard skill from third-party skill scans so the guard does not report its own hook/checkup scripts as user risk.
+- `agentguard checkup` now excludes the managed Axora AgentGuard skill from third-party skill scans so the guard does not report its own hook/checkup scripts as user risk.
 - `agentguard init --agent hermes` now recursively enables AgentGuard hooks in Hermes profile `config.yaml` files, including configs with empty `hooks: {}` blocks or duplicate top-level `hooks` keys.
 - Fixed OpenClaw/QClaw Gateway threat-feed cron installation to send only fields accepted by OpenClaw's `agentTurn` cron payload schema.
 
@@ -282,7 +282,7 @@
   - Weighted scoring algorithm (0–100 composite score)
   - Self-contained HTML report with dark theme, animated score gauge, and expandable findings
   - Lobster mascot with 4 health tiers: Muscular (S), Healthy (A), Tired (B), Sick (F)
-  - Premium upgrade CTA integration (agentguard.gopluslabs.io)
+  - Premium upgrade CTA integration (agentguard.axorasecurity.com)
   - Cross-platform browser opening (macOS/Linux/Windows)
 - `checkup-report.js` script for HTML report generation (zero external dependencies)
 - Checkup results logged to `~/.agentguard/audit.jsonl`
@@ -339,7 +339,7 @@
 ## [1.0.0] - 2026-02-16
 
 ### Added
-- Initial release of GoPlus AgentGuard
+- Initial release of Axora AgentGuard
 - 24 detection rules covering execution, secrets, exfiltration, obfuscation, Web3, and social engineering
 - Runtime action evaluation (allow/deny/confirm) for commands, network requests, file ops, and Web3 transactions
 - Trust registry with capability-based access control per skill

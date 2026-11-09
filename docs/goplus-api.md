@@ -1,6 +1,6 @@
 # GoPlus API Integration
 
-GoPlus AgentGuard optionally integrates with the [GoPlus Security API](https://gopluslabs.io/security-api) for enhanced Web3 security.
+Axora AgentGuard optionally integrates with the [GoPlus Security API](https://gopluslabs.io/security-api) for enhanced Web3 security.
 
 ## Setup
 
@@ -29,7 +29,7 @@ If the GoPlus API is unavailable or keys are not configured, AgentGuard falls ba
 
 ## External Scanner
 
-GoPlus AgentGuard also integrates with [cisco-ai-defense/skill-scanner](https://github.com/cisco-ai-defense/skill-scanner) for additional scanning capabilities:
+Axora AgentGuard also integrates with [cisco-ai-defense/skill-scanner](https://github.com/cisco-ai-defense/skill-scanner) for additional scanning capabilities:
 
 ```bash
 pip install cisco-ai-skill-scanner

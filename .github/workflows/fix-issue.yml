@@ -93,7 +93,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           MAX_BUGS="${{ inputs.max_bugs }}"
-          PROMPT="You are fixing bugs in the GoPlus AgentGuard project (a TypeScript security framework for AI agents).
+          PROMPT="You are fixing bugs in the Axora AgentGuard project (a TypeScript security framework for AI agents).
 
           Project structure:
           - src/ — TypeScript source files (scanner rules, registry, action detectors, MCP server)

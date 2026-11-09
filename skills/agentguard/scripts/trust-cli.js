@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * GoPlus AgentGuard Trust CLI — lightweight wrapper for SkillRegistry operations.
+ * Axora AgentGuard Trust CLI — lightweight wrapper for SkillRegistry operations.
  *
  * Usage:
  *   node trust-cli.js lookup --id <id> --source <source> --version <version> --hash <hash>

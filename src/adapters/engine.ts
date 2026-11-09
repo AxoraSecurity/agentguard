@@ -47,7 +47,7 @@ export async function evaluateHook(
                      (input.toolInput.path as string) || '';
     if (isSensitivePath(filePath)) {
       const skillTag = initiatingSkill ? ` (via skill: ${initiatingSkill})` : '';
-      const reason = `GoPlus AgentGuard: blocked write to sensitive path "${filePath}"${skillTag}`;
+      const reason = `Axora AgentGuard: blocked write to sensitive path "${filePath}"${skillTag}`;
       writeAuditLog(input, { decision: 'deny', risk_level: 'critical', risk_tags: ['SENSITIVE_PATH'] }, initiatingSkill);
 
       // In permissive mode, ask for user-initiated writes
@@ -71,7 +71,7 @@ export async function evaluateHook(
           envelope.action.type,
           { can_exec: false, can_network: false, can_write: false, can_read: true, can_web3: false }
         )) {
-          const reason = `GoPlus AgentGuard: untrusted skill "${initiatingSkill}" attempted ${envelope.action.type} — register it with /agentguard trust attest to allow`;
+          const reason = `Axora AgentGuard: untrusted skill "${initiatingSkill}" attempted ${envelope.action.type} — register it with /agentguard trust attest to allow`;
           writeAuditLog(input, { decision: 'deny', risk_level: 'high', risk_tags: ['UNTRUSTED_SKILL', ...(decision.risk_tags || [])] }, initiatingSkill);
           return { decision: 'ask', reason, riskLevel: 'high', riskTags: ['UNTRUSTED_SKILL'], initiatingSkill };
         }
@@ -79,7 +79,7 @@ export async function evaluateHook(
 
       if (policy.isKnown && policy.capabilities) {
         if (!isActionAllowedByCapabilities(envelope.action.type, policy.capabilities)) {
-          const reason = `GoPlus AgentGuard: skill "${initiatingSkill}" is not allowed to ${envelope.action.type} per its trust policy`;
+          const reason = `Axora AgentGuard: skill "${initiatingSkill}" is not allowed to ${envelope.action.type} per its trust policy`;
           writeAuditLog(input, { decision: 'deny', risk_level: 'high', risk_tags: ['CAPABILITY_EXCEEDED', ...(decision.risk_tags || [])] }, initiatingSkill);
           return { decision: 'deny', reason, riskLevel: 'high', riskTags: ['CAPABILITY_EXCEEDED'], initiatingSkill };
         }
@@ -96,7 +96,7 @@ export async function evaluateHook(
     if (shouldDenyAtLevel(decision, options.config)) {
       return {
         decision: 'deny',
-        reason: `GoPlus AgentGuard: ${decision.explanation || 'Action blocked'}${skillTag} [${tags}]`,
+        reason: `Axora AgentGuard: ${decision.explanation || 'Action blocked'}${skillTag} [${tags}]`,
         riskLevel: decision.risk_level,
         riskTags: decision.risk_tags,
         initiatingSkill,
@@ -106,7 +106,7 @@ export async function evaluateHook(
     if (shouldAskAtLevel(decision, options.config)) {
       return {
         decision: 'ask',
-        reason: `GoPlus AgentGuard: ${decision.explanation || 'Action requires confirmation'}${skillTag} [${tags}]`,
+        reason: `Axora AgentGuard: ${decision.explanation || 'Action requires confirmation'}${skillTag} [${tags}]`,
         riskLevel: decision.risk_level,
         riskTags: decision.risk_tags,
         initiatingSkill,

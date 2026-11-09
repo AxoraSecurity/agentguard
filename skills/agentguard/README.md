@@ -1,4 +1,4 @@
-# GoPlus AgentGuard
+# Axora AgentGuard
 
 AI Agent Security Guard — protect your AI agents from dangerous commands, data leaks, and malicious skills.
 
@@ -72,4 +72,4 @@ The report opens automatically in your browser. It includes a shareable image yo
 
 ## Author
 
-Built by [GoPlus Security](https://gopluslabs.io) — the leading Web3 security infrastructure provider.
+Built by [Axora Security](https://github.com/AxoraSecurity).

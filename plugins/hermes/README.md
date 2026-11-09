@@ -1,8 +1,8 @@
-# GoPlus AgentGuard — Hermes plugin
+# Axora AgentGuard — Hermes plugin
 
 A native [Hermes Agent](https://github.com/NousResearch/hermes-agent) plugin that
 observes supported main-loop model traffic and runs tool calls through the
-[GoPlus AgentGuard](https://github.com/GoPlusSecurity/agentguard) decision engine.
+[Axora AgentGuard](https://github.com/AxoraSecurity/agentguard) decision engine.
 It **blocks risky shell, file, and network actions** before they execute.
 
 Unlike the shell-hook integration (which you wire into `~/.hermes/config.yaml` by

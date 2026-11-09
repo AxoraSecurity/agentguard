@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# GoPlus AgentGuard — One-click setup
+# Axora AgentGuard — One-click setup
 # Supports: Claude Code, OpenClaw, ClawHub
 # Auto-detects the agent platform; use --target or --scope for custom paths.
 #
@@ -57,14 +57,14 @@ done
 set -- "${POSITIONAL[@]+"${POSITIONAL[@]}"}"
 
 echo ""
-echo "  GoPlus AgentGuard — AI Agent Security Guard"
+echo "  Axora AgentGuard — AI Agent Security Guard"
 echo "  ============================================="
 echo ""
 
 # ---- Pre-check: Node.js ----
 if ! command -v node &>/dev/null; then
   echo "  ERROR: Node.js is not installed."
-  echo "  GoPlus AgentGuard requires Node.js >= $MIN_NODE_VERSION."
+  echo "  Axora AgentGuard requires Node.js >= $MIN_NODE_VERSION."
   echo "  Install from: https://nodejs.org"
   exit 1
 fi
@@ -72,7 +72,7 @@ fi
 NODE_MAJOR=$(node -e "console.log(process.versions.node.split('.')[0])")
 if [ "$NODE_MAJOR" -lt "$MIN_NODE_VERSION" ]; then
   echo "  ERROR: Node.js v$(node -v) is too old."
-  echo "  GoPlus AgentGuard requires Node.js >= $MIN_NODE_VERSION."
+  echo "  Axora AgentGuard requires Node.js >= $MIN_NODE_VERSION."
   echo "  Install from: https://nodejs.org"
   exit 1
 fi
@@ -206,7 +206,7 @@ echo ""
 
 # ---- Uninstall mode ----
 if [ "$UNINSTALL" = true ]; then
-  echo "  Uninstalling GoPlus AgentGuard..."
+  echo "  Uninstalling Axora AgentGuard..."
   rm -rf "$SKILLS_DIR" 2>/dev/null && echo "  Removed skill from $SKILLS_DIR" || true
   # Also clean up other possible locations
   rm -rf "$HOME/.claude/skills/agentguard" 2>/dev/null || true
@@ -215,13 +215,13 @@ if [ "$UNINSTALL" = true ]; then
   rm -rf "$OPENCLAW_PLUGIN_DIR" 2>/dev/null || true
   rm -rf "$AGENTGUARD_DIR" 2>/dev/null && echo "  Removed config from $AGENTGUARD_DIR" || true
   echo ""
-  echo "  GoPlus AgentGuard has been uninstalled."
+  echo "  Axora AgentGuard has been uninstalled."
   echo ""
   exit 0
 fi
 
 # ---- Step 1: Build the project ----
-echo "[1/5] Building GoPlus AgentGuard..."
+echo "[1/5] Building Axora AgentGuard..."
 if [ -f "$SCRIPT_DIR/package.json" ]; then
   cd "$SCRIPT_DIR"
   npm install --ignore-scripts 2>/dev/null
@@ -295,7 +295,7 @@ NODE
   cat > "$OPENCLAW_PLUGIN_DIR/openclaw.plugin.json" <<'JSON'
 {
   "id": "agentguard",
-  "name": "GoPlus AgentGuard",
+  "name": "Axora AgentGuard",
   "description": "AI agent security framework — blocks dangerous commands, prevents data leaks, and protects secrets",
   "configSchema": {
     "type": "object",
@@ -380,7 +380,7 @@ JSON
   cat > "$QCLAW_PLUGIN_DIR/openclaw.plugin.json" <<'JSON'
 {
   "id": "agentguard",
-  "name": "GoPlus AgentGuard",
+  "name": "Axora AgentGuard",
   "description": "AI agent security framework — blocks dangerous commands, prevents data leaks, and protects secrets"
 }
 JSON
@@ -497,7 +497,7 @@ fi
 
 # ---- Done ----
 echo ""
-echo "  ✅ GoPlus AgentGuard is installed!"
+echo "  ✅ Axora AgentGuard is installed!"
 echo ""
 echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  NEXT STEPS"

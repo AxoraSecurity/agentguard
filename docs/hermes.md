@@ -130,7 +130,7 @@ Hermes `pre_tool_call` supports allow or block. AgentGuard `deny` decisions are
 returned as:
 
 ```json
-{"action":"block","message":"GoPlus AgentGuard: ..."}
+{"action":"block","message":"Axora AgentGuard: ..."}
 ```
 
 AgentGuard `confirm` decisions are also represented as blocks because Hermes

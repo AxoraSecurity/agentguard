@@ -33,6 +33,6 @@ def test_action_type_is_passed_explicitly():
 def test_hook_mode_block_is_passed_through():
     from helpers import make_hook_runner
 
-    ctx, _ = register_with(make_hook_runner(block=True, message="GoPlus AgentGuard: nope"), mode="hook")
+    ctx, _ = register_with(make_hook_runner(block=True, message="Axora AgentGuard: nope"), mode="hook")
     result = ctx.hooks["pre_tool_call"]("write_file", {"path": "/etc/passwd"})
-    assert result == {"action": "block", "message": "GoPlus AgentGuard: nope"}
+    assert result == {"action": "block", "message": "Axora AgentGuard: nope"}

@@ -1,11 +1,11 @@
 {
-  "name": "goplus-agentguard",
+  "name": "axora-agentguard",
   "owner": {
-    "name": "GoPlus Security",
-    "url": "https://github.com/GoPlusSecurity"
+    "name": "Axora Security",
+    "url": "https://github.com/AxoraSecurity"
   },
   "metadata": {
-    "description": "GoPlus AgentGuard — AI agent security framework",
+    "description": "Axora AgentGuard — AI agent security framework",
     "version": "1.0.0"
   },
   "plugins": [

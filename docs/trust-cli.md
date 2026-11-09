@@ -1,6 +1,6 @@
 # Trust Management
 
-GoPlus AgentGuard includes a trust registry for managing skill permissions.
+Axora AgentGuard includes a trust registry for managing skill permissions.
 
 ## Commands
 

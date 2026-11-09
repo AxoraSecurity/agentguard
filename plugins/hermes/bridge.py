@@ -77,7 +77,7 @@ _REQUIRED_FIELDS: Dict[str, tuple] = {
 # Hermes pre_tool_call has no native "ask"; AgentGuard's confirm maps to a block.
 _BLOCK_DECISIONS = frozenset({"block", "confirm"})
 
-_DEFAULT_BLOCK_MESSAGE = "GoPlus AgentGuard blocked this action"
+_DEFAULT_BLOCK_MESSAGE = "Axora AgentGuard blocked this action"
 _IPC_VERSION = 1
 _DEFAULT_MAX_REQUEST_BYTES = 1024 * 1024
 _DEFAULT_MAX_RESPONSE_BYTES = 256 * 1024
@@ -164,7 +164,7 @@ class AgentGuardBridge:
             # under fail-open): we can't evaluate what we can't read.
             missing = _validate_mapped_payload(tool_name, args or {})
             if missing:
-                return _block("GoPlus AgentGuard: %s" % missing)
+                return _block("Axora AgentGuard: %s" % missing)
 
         if self._runner is None:
             try:
@@ -552,7 +552,7 @@ class AgentGuardBridge:
             return None
         if _env_truthy("AGENTGUARD_HERMES_FAIL_OPEN"):
             return None
-        return _block("GoPlus AgentGuard: %s; blocking fail-closed" % reason)
+        return _block("Axora AgentGuard: %s; blocking fail-closed" % reason)
 
 
 def _remaining_timeout(deadline: float) -> float:
@@ -776,7 +776,7 @@ def _format_reason(data: Dict[str, Any]) -> str:
     risk = data.get("riskScore")
     level = data.get("riskLevel")
     verb = "requires confirmation for" if data.get("decision") == "confirm" else "blocked"
-    base = "GoPlus AgentGuard %s this Hermes tool call (risk: %s/100, level: %s)." % (
+    base = "Axora AgentGuard %s this Hermes tool call (risk: %s/100, level: %s)." % (
         verb, risk, level,
     )
     if titles:

@@ -146,7 +146,7 @@ function updateConfig(address _new) public {
 - Hidden iframe/overlay for approval harvesting
 - Approval transactions disguised as other operations
 
-## GoPlus Security Checks (Optional)
+## Axora Security Checks (Optional)
 
 If GoPlus API is available, these additional checks can be performed:
 

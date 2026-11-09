@@ -58,7 +58,7 @@ export class AgentGuardCloudClient {
   private readonly agentJwt?: string;
 
   constructor(config: Pick<AgentGuardConfig, 'cloudUrl' | 'apiKey' | 'agentJwt'>) {
-    this.cloudUrl = normalizeCloudUrl(config.cloudUrl || 'https://www.agentguard.one');
+    this.cloudUrl = normalizeCloudUrl(config.cloudUrl || 'https://agentguard.axorasecurity.com');
     this.apiKey = config.apiKey;
     this.agentJwt = config.agentJwt;
   }
