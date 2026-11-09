@@ -87,7 +87,7 @@ Allowed `agent` values:
 auto | openclaw | hermes | dsh
 ```
 
-The hosted script installs `@goplus/agentguard`, initializes integrations, and connects Cloud. With no explicit host it calls:
+The hosted script installs `@axora/agentguard`, initializes integrations, and connects Cloud. With no explicit host it calls:
 
 ```bash
 agentguard init --cloud "$AGENTGUARD_CLOUD_URL"

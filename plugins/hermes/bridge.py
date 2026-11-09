@@ -187,7 +187,7 @@ class AgentGuardBridge:
         if argv is None:
             return self._fail(
                 phase,
-                "AgentGuard engine not found; install @goplus/agentguard or set "
+                "AgentGuard engine not found; install @axora/agentguard or set "
                 "AGENTGUARD_BIN / AGENTGUARD_HERMES_HOOK",
             )
 
@@ -263,9 +263,9 @@ class AgentGuardBridge:
         bin_path = os.environ.get("AGENTGUARD_BIN") or shutil.which("agentguard")
         if not bin_path:
             if _env_truthy("AGENTGUARD_HERMES_ALLOW_NPX") and shutil.which("npx"):
-                cmd = ["npx", "-y", "@goplus/agentguard", *args]
+                cmd = ["npx", "-y", "@axora/agentguard", *args]
             else:
-                return "AgentGuard CLI not found. Install @goplus/agentguard (or set AGENTGUARD_BIN)."
+                return "AgentGuard CLI not found. Install @axora/agentguard (or set AGENTGUARD_BIN)."
         else:
             cmd = [bin_path, *args]
         try:
@@ -523,7 +523,7 @@ class AgentGuardBridge:
         # npx fetches an unpinned package over the network — unsafe for a
         # security gate, so it is opt-in only.
         if _env_truthy("AGENTGUARD_HERMES_ALLOW_NPX") and shutil.which("npx"):
-            return (["npx", "-y", "@goplus/agentguard", "protect"], "protect")
+            return (["npx", "-y", "@axora/agentguard", "protect"], "protect")
 
         return (None, None)
 

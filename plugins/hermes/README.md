@@ -15,7 +15,7 @@ place.
 
 - Hermes Agent (with the plugin system).
 - The AgentGuard engine reachable as the `agentguard` CLI on `PATH`
-  (`npm i -g @goplus/agentguard`), or pointed at via `AGENTGUARD_BIN`.
+  (`npm i -g @axora/agentguard`), or pointed at via `AGENTGUARD_BIN`.
 
 ## Install
 

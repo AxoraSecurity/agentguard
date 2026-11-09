@@ -342,7 +342,7 @@ npm run build
 
 agentguard_pack_dir="$(mktemp -d)"
 npm pack --pack-destination "$agentguard_pack_dir"
-npm install -g "$agentguard_pack_dir"/goplus-agentguard-*.tgz
+npm install -g "$agentguard_pack_dir"/axora-agentguard-*.tgz
 
 dsh plugin --profile web add link:/absolute/path/to/agentguard
 ```

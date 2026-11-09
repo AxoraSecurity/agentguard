@@ -18,7 +18,7 @@ uploaded to Cloud.
 
 ## AgentGuard-owned CLI results
 
-Standalone `agentguard` commands and direct `npx @goplus/agentguard` commands
+Standalone `agentguard` commands and direct `npx @axora/agentguard` commands
 pass through post-tool hooks without blocking or redaction, regardless of their
 output content or result shape. Simple `command`, `env`, and shell wrappers are
 recognized; an explicit executable path must resolve to this package's CLI.

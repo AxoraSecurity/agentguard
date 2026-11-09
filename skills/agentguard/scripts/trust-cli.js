@@ -11,7 +11,7 @@
  *   node trust-cli.js hash    --path <dir>
  */
 
-import { createAgentGuard, CAPABILITY_PRESETS, SkillScanner } from '@goplus/agentguard';
+import { createAgentGuard, CAPABILITY_PRESETS, SkillScanner } from '@axora/agentguard';
 
 const args = process.argv.slice(2);
 const command = args[0];

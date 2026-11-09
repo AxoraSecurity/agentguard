@@ -31,7 +31,7 @@ try {
   loadConfig = gs.loadConfig;
 } catch {
   try {
-    const gs = await import('@goplus/agentguard');
+    const gs = await import('@axora/agentguard');
     createAgentGuard = gs.createAgentGuard || gs.default;
     ClaudeCodeAdapter = gs.ClaudeCodeAdapter;
     evaluateHook = gs.evaluateHook;

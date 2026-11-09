@@ -5,13 +5,13 @@ Use Axora AgentGuard as a library in your own project.
 ## Installation
 
 ```bash
-npm install @goplus/agentguard
+npm install @axora/agentguard
 ```
 
 ## Quick Start
 
 ```typescript
-import { createAgentGuard } from '@goplus/agentguard';
+import { createAgentGuard } from '@axora/agentguard';
 
 const { scanner, registry, actionScanner } = createAgentGuard();
 ```
@@ -75,7 +75,7 @@ console.log(result.effective_trust_level); // 'trusted'
 
 ## API Reference
 
-See the TypeScript types exported from `@goplus/agentguard` for full API details:
+See the TypeScript types exported from `@axora/agentguard` for full API details:
 
 - `SkillScanner` — Static analysis engine
 - `SkillRegistry` — Trust level management

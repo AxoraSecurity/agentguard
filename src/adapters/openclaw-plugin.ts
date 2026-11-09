@@ -12,11 +12,11 @@
  * - Build toolName → pluginId mapping for initiating skill inference
  *
  * Usage in OpenClaw plugin config:
- *   import agentguard from '@goplus/agentguard/openclaw';
+ *   import agentguard from '@axora/agentguard/openclaw';
  *   export default agentguard;
  *
  * Or register manually:
- *   import { registerOpenClawPlugin } from '@goplus/agentguard';
+ *   import { registerOpenClawPlugin } from '@axora/agentguard';
  *   registerOpenClawPlugin(api);
  */
 
@@ -749,7 +749,7 @@ function boundedApprovalDescription(value: string): string {
  * objects in JavaScript, so this export supports both shapes without routing
  * OpenClaw through the package root default createAgentGuard() factory.
  *
- * Usage: export default from '@goplus/agentguard/openclaw'
+ * Usage: export default from '@axora/agentguard/openclaw'
  */
 function register(api: OpenClawPluginApi): void {
   registerOpenClawPlugin(api);

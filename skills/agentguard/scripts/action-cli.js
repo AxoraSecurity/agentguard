@@ -28,7 +28,7 @@
  *     --path <filepath>
  */
 
-import { createAgentGuard } from '@goplus/agentguard';
+import { createAgentGuard } from '@axora/agentguard';
 
 const args = process.argv.slice(2);
 const command = args[0];

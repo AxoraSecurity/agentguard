@@ -1,4 +1,4 @@
-import { registerOpenClawPlugin } from '@goplus/agentguard';
+import { registerOpenClawPlugin } from '@axora/agentguard';
 
 export default function setup(api) {
   registerOpenClawPlugin(api, {

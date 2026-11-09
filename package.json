@@ -1,5 +1,5 @@
 {
-  "name": "@goplus/agentguard",
+  "name": "@axora/agentguard",
   "version": "1.2.4",
   "description": "Axora AgentGuard — Security guard for AI agents. Blocks dangerous commands, prevents data leaks, protects secrets. 20 detection rules, runtime action evaluation, trust registry.",
   "main": "dist/index.js",
@@ -18,8 +18,8 @@
     }
   },
   "bin": {
-    "agentguard": "./dist/cli.js",
-    "agentguard-mcp": "./dist/mcp-server.js"
+    "agentguard": "dist/cli.js",
+    "agentguard-mcp": "dist/mcp-server.js"
   },
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
@@ -58,6 +58,9 @@
   ],
   "author": "AxoraSecurity",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AxoraSecurity/agentguard.git"

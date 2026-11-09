@@ -5,7 +5,7 @@ AgentGuard is local-first. Cloud is optional and adds hosted policy, redacted au
 ## Install and initialize
 
 ```bash
-npm install -g @goplus/agentguard
+npm install -g @axora/agentguard
 agentguard init
 ```
 

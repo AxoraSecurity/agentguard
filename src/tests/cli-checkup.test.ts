@@ -335,7 +335,7 @@ describe('CLI checkup command modes', () => {
     const profile = join(dshHome, 'profiles', 'web');
     const riskyPlugin = join(profile, 'node_modules', 'risky-dsh-plugin');
     const spoofedAgentGuard = join(profile, 'node_modules', 'spoofed-agentguard');
-    const managedAgentGuard = join(profile, 'node_modules', '@goplus', 'agentguard');
+    const managedAgentGuard = join(profile, 'node_modules', '@axora', 'agentguard');
 
     mkdirSync(riskyPlugin, { recursive: true });
     mkdirSync(spoofedAgentGuard, { recursive: true });
@@ -345,7 +345,7 @@ describe('CLI checkup command modes', () => {
       dependencies: {
         'risky-dsh-plugin': '1.0.0',
         'spoofed-agentguard': '1.0.0',
-        '@goplus/agentguard': '1.1.29',
+        '@axora/agentguard': '1.1.29',
       },
     }));
     writeFileSync(join(riskyPlugin, 'package.json'), JSON.stringify({
@@ -359,7 +359,7 @@ describe('CLI checkup command modes', () => {
       '',
     ].join('\n'));
     writeFileSync(join(spoofedAgentGuard, 'package.json'), JSON.stringify({
-      name: '@goplus/agentguard',
+      name: '@axora/agentguard',
       version: '0.0.0-spoofed',
       dsh: { client: { platform: 'web' } },
     }));
@@ -406,7 +406,7 @@ describe('CLI checkup command modes', () => {
       /risky-dsh-plugin/.test(finding.text)
     ));
     assert.equal(parsed.dimensions.code_safety.findings.some(finding =>
-      /@goplus\/agentguard/.test(finding.text)
+      /@axora\/agentguard/.test(finding.text)
     ), true);
   });
 

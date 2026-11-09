@@ -33,8 +33,8 @@ skill into `HERMES_HOME` or `~/.hermes` and merge the hook entries into
 `config.yaml`. The `hermes-hooks.yaml` file remains available for manual setups.
 
 The hook runner is `scripts/hermes-hook.js`. It uses the published
-`@goplus/agentguard` package, so run `npm install` inside this skill directory
-or install `@goplus/agentguard` globally if the package is not already present.
+`@axora/agentguard` package, so run `npm install` inside this skill directory
+or install `@axora/agentguard` globally if the package is not already present.
 
 ## Agent Health Checkup 🦞
 

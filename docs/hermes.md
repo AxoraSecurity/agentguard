@@ -26,7 +26,7 @@ hermes plugins list
 
 The plugin starts one persistent local evaluator on demand and communicates over
 current-user IPC, avoiding a Node startup for every large prompt. Make sure
-`agentguard` is on `PATH` (`npm i -g @goplus/agentguard`) or set
+`agentguard` is on `PATH` (`npm i -g @axora/agentguard`) or set
 `AGENTGUARD_BIN`. See [`plugins/hermes/README.md`](../plugins/hermes/README.md)
 for IPC limits, environment variables, and failure policy.
 

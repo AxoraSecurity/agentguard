@@ -45,7 +45,7 @@ try {
   createAgentGuard = gs.createAgentGuard || gs.default;
 } catch {
   try {
-    const gs = await import('@goplus/agentguard');
+    const gs = await import('@axora/agentguard');
     createAgentGuard = gs.createAgentGuard || gs.default;
   } catch {
     // Can't load engine — exit silently
