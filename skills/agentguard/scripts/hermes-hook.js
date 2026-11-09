@@ -106,7 +106,7 @@ async function loadEngine() {
     };
   } catch {
     try {
-      const gs = await import('@axora/agentguard');
+      const gs = await import('@axorasec/agentguard');
       return {
         loadRuntimeConfig: gs.loadAgentGuardConfig || gs.ensureConfig,
         loadHookConfig: gs.loadConfig,

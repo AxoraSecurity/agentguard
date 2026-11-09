@@ -1,6 +1,6 @@
 {
   "name": "agentguard",
-  "version": "1.0.0",
+  "version": "1.2.4",
   "description": "Axora AgentGuard — AI agent security guard. Blocks dangerous commands, prevents data leaks, protects secrets. 20 detection rules, runtime action evaluation, trust registry.",
   "author": {
     "name": "Axora Security",

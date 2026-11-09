@@ -9,7 +9,7 @@ The Phase 1 scanner is intentionally read-only: it scans source, classifies capa
 AgentGuard can be loaded into a DSH profile as a native tool plugin. From an npm release:
 
 ```bash
-npm install -g @axora/agentguard
+npm install -g @axorasec/agentguard
 agentguard init --agent dsh
 ```
 
@@ -18,7 +18,7 @@ When invoked inside DSH, bare `agentguard init` auto-detects DSH and performs th
 The equivalent low-level DSH command is:
 
 ```bash
-dsh plugin --profile web add --allow-build=@axora/agentguard @axora/agentguard
+dsh plugin --profile web add --allow-build=@axorasec/agentguard @axorasec/agentguard
 ```
 
 The scoped `--allow-build` approval lets pnpm run AgentGuard's reviewed npm
@@ -122,7 +122,7 @@ npm run build
 
 PACK_DIR="$(mktemp -d)"
 npm pack --pack-destination "$PACK_DIR"
-npm install -g "$PACK_DIR"/axora-agentguard-*.tgz
+npm install -g "$PACK_DIR"/axorasec-agentguard-*.tgz
 
 dsh plugin --profile web add link:/absolute/path/to/agentguard
 ```
@@ -132,7 +132,7 @@ Verify both installation paths without requiring `realpath` or `rg`:
 ```bash
 CLI_PATH="$(command -v agentguard)"
 node -e 'console.log(require("node:fs").realpathSync(process.argv[1]))' "$CLI_PATH"
-grep -F '"@axora/agentguard"' "$HOME/.dsh/profiles/web/package.json"
+grep -F '"@axorasec/agentguard"' "$HOME/.dsh/profiles/web/package.json"
 ```
 
 The first command must resolve under the active Node/npm installation, not the
@@ -167,17 +167,17 @@ DSH forwards plugin lifecycle commands to the profile package manager. Keep the 
 dsh web --dump-config
 
 # Update an npm-installed release
-dsh plugin --profile web update @axora/agentguard
+dsh plugin --profile web update @axorasec/agentguard
 
 # Remove AgentGuard from the profile
-dsh plugin --profile web remove @axora/agentguard
+dsh plugin --profile web remove @axorasec/agentguard
 ```
 
 Restart the DSH process after an add, update, or remove operation. For a local `link:` installation, rebuild the AgentGuard checkout with `npm run build`, then restart DSH; the link continues to point at the same checkout.
 
 Verification checklist:
 
-1. `dsh web --dump-config` contains `id: agentguard-dsh-plugin` and the `@axora/agentguard/dist/dsh/plugin.js` entry.
+1. `dsh web --dump-config` contains `id: agentguard-dsh-plugin` and the `@axorasec/agentguard/dist/dsh/plugin.js` entry.
 2. DSH exposes the `agentguard_dsh_scan`, `agentguard_dsh_scan_batch`, `agentguard_dsh_compare`, `agentguard_dsh_runtime_summary`, `agentguard_dsh_subscribe`, `agentguard_dsh_subscription_status`, and `agentguard_dsh_unsubscribe` tools.
 3. A JSON scan contains `scanner.version`, `scanner.phase`, and `scanner.rulesBaseline`. Keep these fields with a saved report so later rescans can be compared to the same implementation.
 4. `~/.agentguard/audit.jsonl` receives DSH events with `agentHost: "dsh"`. The default composition records pre-execute events with `runtimeMode: "protect"` and `enforcementApplied: true`; an explicit audit-only composition records `runtimeMode: "observe"` and does not apply pre-execute enforcement.
@@ -329,7 +329,7 @@ import {
   renderDshHtml,
   renderDshMarkdown,
   type DshPluginScanReport,
-} from '@axora/agentguard';
+} from '@axorasec/agentguard';
 
 const report: DshPluginScanReport = await scanDshPlugin('./plugin');
 const pinned = await scanDshPlugin('https://github.com/owner/dsh-plugin', { ref: 'v1.2.3' });

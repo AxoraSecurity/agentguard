@@ -164,13 +164,13 @@ the shared runtime protection path and syncs pre-tool decisions to Cloud.
 1. Resolve the AgentGuard skill directory using the "Important: Resolving Script
    Paths" rules above.
 2. Confirm that dependencies are available. If `node scripts/hermes-hook.js`
-   cannot load `@axora/agentguard`, tell the user to run:
+   cannot load `@axorasec/agentguard`, tell the user to run:
    ```bash
    cd <agentguard-skill-dir> && npm install
    ```
    or install the published package globally:
    ```bash
-   npm install -g @axora/agentguard
+   npm install -g @axorasec/agentguard
    ```
 3. Prefer `agentguard init --agent hermes --force` to install and merge the
    hook entries automatically.
@@ -1111,7 +1111,7 @@ Run these checks in parallel where possible. These are **universal agent securit
 
    For **every** discovered skill, **run `/agentguard scan <skill_path>`** using the scan subcommand logic (24 detection rules). Do NOT skip any skill regardless of how many are found. Record for each skill: name, risk_level, and exact findings list (rule, severity, file, line).
 
-   Also discover installed DSH plugins under the resolved DSH home: use the non-empty `DSH_HOME` value when set, otherwise use the current user's real home directory plus `.dsh` (do not pass a literal unexpanded `~` to path APIs). Inspect `${dshHome}/profiles/*`; read each immediate profile's `package.json`, collect only names declared in `dependencies` and `optionalDependencies`, and resolve their existing directories beneath that same profile's `node_modules/`. For a dependency that declares `dsh.bundle.patch`, parse its Cordis patch and recursively resolve only package dependencies actually named by plugin rows in that patch; repeat for referenced child bundles, with path deduplication, cycle detection, and a bounded depth. Do not enumerate or scan unrelated transitive dependencies. Exclude only the exact `@axora/agentguard` dependency coordinate declared by the profile or referenced by a bundle; never trust an installed plugin's self-reported package name for this exclusion. For **every** discovered direct or bundle-referenced plugin, run `agentguard dsh-scan <plugin_path> --format json` and record its name, path, `riskLevel`, and exact findings list (`ruleId`, severity, file, line), normalized to the raw-facts schema below. A failed DSH plugin scan must not prevent the remaining checks from completing; record it in `dsh_plugins` with `risk_level: "high"` and one finding `{ "rule": "DSH_SCAN_FAILED", "severity": "HIGH", "file": "<plugin_path>", "line": 0 }`.
+   Also discover installed DSH plugins under the resolved DSH home: use the non-empty `DSH_HOME` value when set, otherwise use the current user's real home directory plus `.dsh` (do not pass a literal unexpanded `~` to path APIs). Inspect `${dshHome}/profiles/*`; read each immediate profile's `package.json`, collect only names declared in `dependencies` and `optionalDependencies`, and resolve their existing directories beneath that same profile's `node_modules/`. For a dependency that declares `dsh.bundle.patch`, parse its Cordis patch and recursively resolve only package dependencies actually named by plugin rows in that patch; repeat for referenced child bundles, with path deduplication, cycle detection, and a bounded depth. Do not enumerate or scan unrelated transitive dependencies. Exclude only the exact `@axorasec/agentguard` dependency coordinate declared by the profile or referenced by a bundle; never trust an installed plugin's self-reported package name for this exclusion. For **every** discovered direct or bundle-referenced plugin, run `agentguard dsh-scan <plugin_path> --format json` and record its name, path, `riskLevel`, and exact findings list (`ruleId`, severity, file, line), normalized to the raw-facts schema below. A failed DSH plugin scan must not prevent the remaining checks from completing; record it in `dsh_plugins` with `risk_level: "high"` and one finding `{ "rule": "DSH_SCAN_FAILED", "severity": "HIGH", "file": "<plugin_path>", "line": 0 }`.
 2. **[REQUIRED] Credential file permissions** (→ feeds Dimension 2: Credential Safety): Platform-aware check — behavior differs by OS:
    - **macOS/Linux**: Run `stat -f '%Lp' <path> 2>/dev/null || stat -c '%a' <path> 2>/dev/null` on `~/.ssh/`, `~/.gnupg/`. **If the command returns empty output, the directory does not exist — record `exists: false`.**
    - **Windows**: `stat` is not available. Use `icacls <path>` to check ACLs instead. If directory doesn't exist, record `exists: false`. If it exists, record whether the ACL grants access to `Everyone`, `Users`, or `Authenticated Users`.

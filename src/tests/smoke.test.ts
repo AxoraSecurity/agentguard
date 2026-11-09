@@ -116,7 +116,7 @@ function makeInstalledSkillCli(scriptPath: string): { skillDir: string; script: 
   mkdirSync(scriptsDir, { recursive: true });
   writeFileSync(join(skillDir, 'package.json'), JSON.stringify({ private: true, type: 'module' }, null, 2));
   cpSync(scriptPath, join(scriptsDir, scriptPath.split('/').pop() || 'cli.js'));
-  const scopedDir = join(skillDir, 'node_modules', '@axora');
+  const scopedDir = join(skillDir, 'node_modules', '@axorasec');
   mkdirSync(scopedDir, { recursive: true });
   symlinkSync(projectRoot, join(scopedDir, 'agentguard'), 'dir');
   return { skillDir, script: join(scriptsDir, scriptPath.split('/').pop() || 'cli.js') };

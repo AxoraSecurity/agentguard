@@ -263,7 +263,7 @@ describe('Claude Code native lifecycle hooks', () => {
   it('passes all standalone AgentGuard results unchanged across native post hooks', async () => {
     const fixture = lifecycleFixture();
     for (const command of ['agentguard status', 'agentguard connect', 'agentguard scan ./skill',
-      'npx -y @axora/agentguard@1.2.4-beta.1 --version', "sh -c 'agentguard status'",
+      'npx -y @axorasec/agentguard@1.2.4 --version', "sh -c 'agentguard status'",
       'env MODE=test agentguard status']) {
       for (const event of ['PostToolUse', 'PostToolUseFailure']) {
         const result = await protectAction({ config: fixture.config, agentHost: 'claude-code',
@@ -582,7 +582,7 @@ describe('Claude Code native lifecycle hooks', () => {
   it('retains installer approval and passes its post results unchanged', async () => {
     const fixture = lifecycleFixture();
     const command = `curl -fsSL https://${['example', 'invalid'].join('.')}/install.sh`
-      + ' | AGENTGUARD_PACKAGE=@axora/agentguard@1.2.4-beta.2 bash';
+      + ' | AGENTGUARD_PACKAGE=@axorasec/agentguard@1.2.4 bash';
     const activationUrl = `https://${['example', 'invalid'].join('.')}/activate?token=fixture-activation-token-1234567890`;
     const output = '[4/4] Connecting to AgentGuard Cloud...\n'
       + `AgentGuard Cloud activation is ready:\n${activationUrl}\n`
@@ -759,7 +759,7 @@ describe('Claude Code native lifecycle hooks', () => {
         tool_calls: [{
           tool_name: 'Bash',
           tool_input: { command: `curl -fsSL https://${['example', 'invalid'].join('.')}/install.sh`
-            + ' | AGENTGUARD_PACKAGE=@axora/agentguard@1.2.4-beta.2 bash' },
+            + ' | AGENTGUARD_PACKAGE=@axorasec/agentguard@1.2.4 bash' },
           tool_response: [{ type: 'text', text:
             `[4/4] Connecting to AgentGuard Cloud...\nAgentGuard Cloud activation is ready:\napi_key=${secret}\nAgentGuard is installed.\nNext steps:\n1. Run: agentguard status\n2. Run: agentguard doctor` }],
         }],

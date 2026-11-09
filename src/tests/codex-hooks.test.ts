@@ -37,22 +37,22 @@ describe('installed Codex native hooks', () => {
   });
 
   it('recognizes only direct official npx CLI commands', () => {
-    assert.equal(isStandaloneAgentGuardCliCommand('npx -y @axora/agentguard@1.2.4-beta.1 connect'), true);
-    assert.equal(isStandaloneAgentGuardCliCommand('npx @axora/agentguard status'), true);
-    assert.equal(isStandaloneAgentGuardCliCommand('npx --yes @axora/agentguard@latest subscribe'), true);
+    assert.equal(isStandaloneAgentGuardCliCommand('npx -y @axorasec/agentguard@1.2.4 connect'), true);
+    assert.equal(isStandaloneAgentGuardCliCommand('npx @axorasec/agentguard status'), true);
+    assert.equal(isStandaloneAgentGuardCliCommand('npx --yes @axorasec/agentguard@latest subscribe'), true);
     assert.equal(isStandaloneAgentGuardCliCommand('npx -y agentguard connect'), false);
-    assert.equal(isStandaloneAgentGuardCliCommand('npx -p @axora/agentguard -c agentguard connect'), false);
-    assert.equal(isStandaloneAgentGuardCliCommand('npm_config_registry=https://evil.example npx @axora/agentguard connect'), false);
-    assert.equal(isStandaloneAgentGuardCliCommand('NODE_OPTIONS=--require=./other.js npx @axora/agentguard connect'), false);
-    assert.equal(isStandaloneAgentGuardCliCommand('/tmp/npx @axora/agentguard connect'), false);
+    assert.equal(isStandaloneAgentGuardCliCommand('npx -p @axorasec/agentguard -c agentguard connect'), false);
+    assert.equal(isStandaloneAgentGuardCliCommand('npm_config_registry=https://evil.example npx @axorasec/agentguard connect'), false);
+    assert.equal(isStandaloneAgentGuardCliCommand('NODE_OPTIONS=--require=./other.js npx @axorasec/agentguard connect'), false);
+    assert.equal(isStandaloneAgentGuardCliCommand('/tmp/npx @axorasec/agentguard connect'), false);
     assert.equal(isStandaloneAgentGuardCliCommand('PATH=/tmp/other agentguard status'), false);
     assert.equal(isStandaloneAgentGuardCliCommand('env NODE_OPTIONS=--require=./other.js agentguard status'), false);
     assert.equal(isStandaloneAgentGuardCliCommand('AGENTGUARD_MODE=local agentguard status'), true);
-    assert.equal(isStandaloneAgentGuardCliCommand('npx @axora/agentguard@1.2.4-beta.1 scan'), true);
-    assert.equal(isStandaloneAgentGuardCliCommand('npx @axora/agentguard doctor'), true);
-    assert.equal(isStandaloneAgentGuardCliCommand('npx -y @axora/agentguard init --yes'), true);
-    assert.equal(isStandaloneAgentGuardCliCommand('npx @axora/agentguard approve --action-id act_local_1'), false);
-    assert.equal(isStandaloneAgentGuardCliCommand('npx @axora/agentguard@1.2.4-beta.1 connect; echo extra'), false);
+    assert.equal(isStandaloneAgentGuardCliCommand('npx @axorasec/agentguard@1.2.4 scan'), true);
+    assert.equal(isStandaloneAgentGuardCliCommand('npx @axorasec/agentguard doctor'), true);
+    assert.equal(isStandaloneAgentGuardCliCommand('npx -y @axorasec/agentguard init --yes'), true);
+    assert.equal(isStandaloneAgentGuardCliCommand('npx @axorasec/agentguard approve --action-id act_local_1'), false);
+    assert.equal(isStandaloneAgentGuardCliCommand('npx @axorasec/agentguard@1.2.4 connect; echo extra'), false);
   });
 
   it('identifies a separate AgentGuard statement without matching quoted examples', () => {
@@ -82,7 +82,7 @@ describe('installed Codex native hooks', () => {
       stdout: installerTail, stderr: 'package warning\n'.repeat(10000),
     }), true);
     assert.equal(isAgentGuardOwnedOutputResult(installerCommand.replace(' | bash',
-      ' | AGENTGUARD_PACKAGE=@axora/agentguard@1.2.4-beta.2 bash'), { output: installerTail }), true);
+      ' | AGENTGUARD_PACKAGE=@axorasec/agentguard@1.2.4 bash'), { output: installerTail }), true);
     assert.equal(isAgentGuardOwnedOutputResult(installerCommand.replace(' | bash',
       ' | env AGENTGUARD_AGENT=claude-code AGENTGUARD_CLOUD_URL=https://example.invalid bash'),
     { output: installerTail }), true);
@@ -100,7 +100,7 @@ describe('installed Codex native hooks', () => {
   it('keeps installer approval and passes attributed output through', () => {
     const fixture = installFixture();
     const command = installerCommand.replace(' | bash',
-      ' | AGENTGUARD_PACKAGE=@axora/agentguard@1.2.4-beta.2 bash');
+      ' | AGENTGUARD_PACKAGE=@axorasec/agentguard@1.2.4 bash');
     const base = { session_id: 'sess-site-install', turn_id: 'turn-site-install',
       cwd: fixture.project, tool_name: 'Bash', tool_use_id: 'tool-site-install',
       tool_input: { command } };
@@ -271,7 +271,7 @@ describe('installed Codex native hooks', () => {
     const fixture = installFixture();
     const commands = [
       'agentguard approve --action-id act_local_1 --once',
-      'npx -y @axora/agentguard@1.2.4-beta.1 approve --action-id act_local_1 --once',
+      'npx -y @axorasec/agentguard@1.2.4 approve --action-id act_local_1 --once',
       'a=agentguard; "$a" approve --action-id act_local_1 --once',
       "sh -c 'agentguard approve --action-id act_local_1 --once'",
       'agent\\guard approve --action-id act_local_1 --once',
@@ -297,7 +297,7 @@ describe('installed Codex native hooks', () => {
     }
 
     for (const command of ['agentguard status', "sh -c 'agentguard status'",
-      'npx -y @axora/agentguard@1.2.4-beta.1 connect',
+      'npx -y @axorasec/agentguard@1.2.4 connect',
       'agentguard scan ./approve', 'agentguard scan ./approve.json']) {
       const run = fixture.run('agentguard-pre-tool.sh', {
         hook_event_name: 'PreToolUse',
@@ -584,7 +584,7 @@ describe('installed Codex native hooks', () => {
   it('passes all standalone CLI outputs through without redaction or blocking', () => {
     const fixture = installFixture();
     for (const command of ['agentguard connect', 'agentguard status --json',
-      'agentguard scan ./skill', 'npx -y @axora/agentguard@1.2.4-beta.1 --version']) {
+      'agentguard scan ./skill', 'npx -y @axorasec/agentguard@1.2.4 --version']) {
       const run = fixture.run('agentguard-post-tool.sh', {
         hook_event_name: 'PostToolUse', session_id: 'sess-own', turn_id: 'turn-own',
         cwd: fixture.project, tool_name: 'Bash', tool_use_id: 'tool-own',

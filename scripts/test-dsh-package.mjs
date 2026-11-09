@@ -76,16 +76,16 @@ try {
   assert.ok(![...archiveFiles].some(path => path.startsWith('package/dist/tests/')), 'tarball contains compiled tests');
 
   await dsh(['plugin', '--profile', 'web', 'install', '--lockfile-only']);
-  const tarballBuildKey = `@axora/agentguard@file:${relative(await realpath(profileDir), tarball).replaceAll('\\', '/')}`;
+  const tarballBuildKey = `@axorasec/agentguard@file:${relative(await realpath(profileDir), tarball).replaceAll('\\', '/')}`;
   await dsh(['plugin', '--profile', 'web', 'add', `--allow-build=${tarballBuildKey}`, tarball]);
   const installedManifest = JSON.parse(await readFile(join(profileDir, 'package.json'), 'utf8'));
-  assert.ok(installedManifest.dependencies?.['@axora/agentguard']);
-  assert.ok(installedManifest.dsh?.profile?.bundles?.includes('@axora/agentguard'));
+  assert.ok(installedManifest.dependencies?.['@axorasec/agentguard']);
+  assert.ok(installedManifest.dsh?.profile?.bundles?.includes('@axorasec/agentguard'));
 
   const { stdout: composed } = await dsh(['web', '--dump-config']);
   assert.match(composed, /id:\s*agentguard-dsh-plugin/);
   assert.match(composed, /runtime:\s*\n\s+mode:\s*protect/);
-  const installedPlugin = join(profileDir, 'node_modules/@axora/agentguard/dist/dsh/plugin.js');
+  const installedPlugin = join(profileDir, 'node_modules/@axorasec/agentguard/dist/dsh/plugin.js');
   const plugin = await import(`${pathToFileURL(installedPlugin).href}?package=${Date.now()}`);
   const registeredTools = [];
   const runtimeEvents = [];
@@ -131,13 +131,13 @@ try {
 
   await dsh(['plugin', '--profile', 'web', 'update', tarball]);
   const updatedManifest = JSON.parse(await readFile(join(profileDir, 'package.json'), 'utf8'));
-  assert.ok(updatedManifest.dependencies?.['@axora/agentguard']);
-  assert.ok(updatedManifest.dsh?.profile?.bundles?.includes('@axora/agentguard'));
+  assert.ok(updatedManifest.dependencies?.['@axorasec/agentguard']);
+  assert.ok(updatedManifest.dsh?.profile?.bundles?.includes('@axorasec/agentguard'));
 
-  await dsh(['plugin', '--profile', 'web', 'remove', '@axora/agentguard']);
+  await dsh(['plugin', '--profile', 'web', 'remove', '@axorasec/agentguard']);
   const removedManifest = JSON.parse(await readFile(join(profileDir, 'package.json'), 'utf8'));
-  assert.equal(removedManifest.dependencies?.['@axora/agentguard'], undefined);
-  assert.ok(!removedManifest.dsh?.profile?.bundles?.includes('@axora/agentguard'));
+  assert.equal(removedManifest.dependencies?.['@axorasec/agentguard'], undefined);
+  assert.ok(!removedManifest.dsh?.profile?.bundles?.includes('@axorasec/agentguard'));
 
   console.log(JSON.stringify({
     tarball: packResult[0].filename,

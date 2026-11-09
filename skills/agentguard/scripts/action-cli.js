@@ -28,7 +28,7 @@
  *     --path <filepath>
  */
 
-import { createAgentGuard } from '@axora/agentguard';
+import { createAgentGuard } from '@axorasec/agentguard';
 
 const args = process.argv.slice(2);
 const command = args[0];

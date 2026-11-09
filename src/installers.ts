@@ -36,7 +36,7 @@ export function installAgentTemplates(agent: AgentInstaller, options: {
 function installDsh(root: string): InstallResult {
   const args = [
     'plugin', '--profile', 'web', 'add',
-    '--allow-build=@axora/agentguard', '@axora/agentguard',
+    '--allow-build=@axorasec/agentguard', '@axorasec/agentguard',
   ];
   const result = spawnSync('dsh', args, {
     cwd: root,
@@ -165,7 +165,7 @@ const HERMES_PLUGIN_REQUIRED_FILES = ['plugin.yaml', '__init__.py'];
 function copyBundledHermesPlugin(targetDir: string, force: boolean): void {
   const sourceDir = resolve(__dirname, '..', 'plugins', 'hermes');
   if (!existsSync(sourceDir)) {
-    throw new Error(`Bundled Hermes plugin not found at ${sourceDir}. Reinstall @axora/agentguard.`);
+    throw new Error(`Bundled Hermes plugin not found at ${sourceDir}. Reinstall @axorasec/agentguard.`);
   }
   if (!(existsSync(targetDir) && !force)) {
     mkdirSync(dirname(targetDir), { recursive: true });
@@ -836,13 +836,13 @@ function openClawPluginTemplate(): string {
 
 function loadAgentGuard() {
   try {
-    return require('@axora/agentguard');
+    return require('@axorasec/agentguard');
   } catch (firstError) {
     try {
       return require(agentGuardPackageRoot);
     } catch (fallbackError) {
       const error = new Error(
-        'Unable to load @axora/agentguard from OpenClaw plugin. ' +
+        'Unable to load @axorasec/agentguard from OpenClaw plugin. ' +
         'Tried package resolution and fallback path: ' + agentGuardPackageRoot
       );
       error.cause = fallbackError;

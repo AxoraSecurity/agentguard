@@ -2,7 +2,7 @@ FROM node:22-slim
 
 WORKDIR /workspace
 
-RUN npm install -g @axora/agentguard
+RUN npm install -g @axorasec/agentguard
 RUN agentguard init --agent openclaw
 
 COPY plugin.ts ./plugin.ts

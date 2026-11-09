@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Axora AgentGuard — AI agent security framework",
-    "version": "1.0.0"
+    "version": "1.2.4"
   },
   "plugins": [
     {

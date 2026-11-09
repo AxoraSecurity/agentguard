@@ -227,7 +227,7 @@ describe('init CLI', () => {
     assert.deepEqual(config.agentHosts, ['dsh']);
     assert.deepEqual(JSON.parse(readFileSync(callLog, 'utf8')), [
       'plugin', '--profile', 'web', 'add',
-      '--allow-build=@axora/agentguard', '@axora/agentguard',
+      '--allow-build=@axorasec/agentguard', '@axorasec/agentguard',
     ]);
     assert.match(stdout, /Installed dsh integration in profile web/);
     assert.match(stdout, /Restart DSH/);
@@ -435,7 +435,7 @@ describe('init CLI', () => {
     assert.deepEqual(config.agentHosts, ['dsh']);
     assert.deepEqual(JSON.parse(readFileSync(callLog, 'utf8')), [
       'plugin', '--profile', 'web', 'add',
-      '--allow-build=@axora/agentguard', '@axora/agentguard',
+      '--allow-build=@axorasec/agentguard', '@axorasec/agentguard',
     ]);
     assert.match(stdout, /Installed dsh integration in profile web/);
   });
@@ -467,7 +467,7 @@ describe('init CLI', () => {
     assert.deepEqual(config.agentHosts, ['dsh']);
     assert.deepEqual(JSON.parse(readFileSync(callLog, 'utf8')), [
       'plugin', '--profile', 'web', 'add',
-      '--allow-build=@axora/agentguard', '@axora/agentguard',
+      '--allow-build=@axorasec/agentguard', '@axorasec/agentguard',
     ]);
     assert.match(stdout, /Installed dsh integration in profile web/);
   });
@@ -497,7 +497,7 @@ describe('init CLI', () => {
 
     assert.deepEqual(JSON.parse(readFileSync(callLog, 'utf8')), [
       'plugin', '--profile', 'web', 'add',
-      '--allow-build=@axora/agentguard', '@axora/agentguard',
+      '--allow-build=@axorasec/agentguard', '@axorasec/agentguard',
     ]);
     assert.match(stdout, /Installed dsh integration in profile web/);
   });

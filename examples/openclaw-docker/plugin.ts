@@ -1,4 +1,4 @@
-import { registerOpenClawPlugin } from '@axora/agentguard';
+import { registerOpenClawPlugin } from '@axorasec/agentguard';
 
 export default function setup(api) {
   registerOpenClawPlugin(api, {

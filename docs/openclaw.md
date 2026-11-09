@@ -13,7 +13,7 @@ agentguard init --agent openclaw
 This creates a local plugin under `~/.openclaw/plugins/agentguard`, installs the AgentGuard skill under `~/.openclaw/skills/agentguard`, and enables the plugin in `~/.openclaw/openclaw.json`.
 
 ```ts
-import { registerOpenClawPlugin } from '@axora/agentguard';
+import { registerOpenClawPlugin } from '@axorasec/agentguard';
 
 export default function setup(api) {
   registerOpenClawPlugin(api, {
@@ -119,4 +119,4 @@ capability boundaries outside AgentGuard's control.
 
 ## Docker demo
 
-See `examples/openclaw-docker/` for a minimal Docker demo that installs `@axora/agentguard`, runs `agentguard init --agent openclaw`, and provides a starter plugin.
+See `examples/openclaw-docker/` for a minimal Docker demo that installs `@axorasec/agentguard`, runs `agentguard init --agent openclaw`, and provides a starter plugin.
