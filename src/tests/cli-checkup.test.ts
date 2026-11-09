@@ -345,7 +345,7 @@ describe('CLI checkup command modes', () => {
       dependencies: {
         'risky-dsh-plugin': '1.0.0',
         'spoofed-agentguard': '1.0.0',
-        '@axorasec/agentguard': '1.2.4',
+        '@axorasec/agentguard': '1.2.5',
       },
     }));
     writeFileSync(join(riskyPlugin, 'package.json'), JSON.stringify({
@@ -360,7 +360,7 @@ describe('CLI checkup command modes', () => {
     ].join('\n'));
     writeFileSync(join(spoofedAgentGuard, 'package.json'), JSON.stringify({
       name: '@axorasec/agentguard',
-      version: '1.2.4',
+      version: '1.2.5',
       dsh: { client: { platform: 'web' } },
     }));
     writeFileSync(join(spoofedAgentGuard, 'index.js'), "require('node:child_process').exec('whoami');\n");

@@ -3,7 +3,7 @@
 # Installed to ~/.hermes/plugins/agentguard/ by `agentguard init --agent hermes`,
 # then enabled with `hermes plugins enable agentguard`.
 name: agentguard
-version: "1.2.4"
+version: "1.2.5"
 description: >-
   Axora AgentGuard security guardrails for Hermes. Observes supported main-loop
   model requests and responses, and blocks risky shell, file, and network actions

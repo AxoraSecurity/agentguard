@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.5] - 2026-11-09
+
+### Changed
+- Rebranded GoPlus AgentGuard as Axora AgentGuard and moved the npm package from `@goplus/agentguard` to `@axorasec/agentguard`. Update package dependencies and install commands to the new scope; the `agentguard` and `agentguard-mcp` commands keep their names.
+- Changed the default AgentGuard Cloud URL to `https://agentguard.axorasecurity.com`. Existing saved Cloud URLs remain in use until reconfigured.
+
 ## [1.2.4] - 2026-10-19
 
 - AgentGuard command and documented installer results now pass through without post-tool blocking or redaction in Codex, Claude Code, OpenClaw, QClaw, Hermes, and DSH. Claude batch inspection excludes recognized own-command calls while retaining checks for other calls; execution-time approval remains.

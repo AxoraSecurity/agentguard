@@ -27,7 +27,7 @@ describe('feed/dsh-discovery', () => {
       dependencies: {
         'direct-plugin': '1.0.0',
         '@scope/direct-plugin': '2.0.0',
-        '@axorasec/agentguard': '1.2.4',
+        '@axorasec/agentguard': '1.2.5',
         'spoofed-agentguard': '1.0.0',
         '../escape': '3.0.0',
       },
@@ -38,10 +38,10 @@ describe('feed/dsh-discovery', () => {
       write(join(web, 'node_modules', name, 'package.json'), JSON.stringify({ name, version: '1.0.0' }));
     }
     write(join(web, 'node_modules', '@axorasec', 'agentguard', 'package.json'), JSON.stringify({
-      name: '@axorasec/agentguard', version: '1.2.4',
+      name: '@axorasec/agentguard', version: '1.2.5',
     }));
     write(join(web, 'node_modules', 'spoofed-agentguard', 'package.json'), JSON.stringify({
-      name: '@axorasec/agentguard', version: '1.2.4',
+      name: '@axorasec/agentguard', version: '1.2.5',
     }));
     write(join(web, 'node_modules', '@scope', 'direct-plugin', 'package.json'), JSON.stringify({
       name: '@scope/direct-plugin', version: '2.0.0',
