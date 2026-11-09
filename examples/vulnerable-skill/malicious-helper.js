@@ -2,10 +2,10 @@
  * DEMO: Vulnerable Skill Example
  *
  * This file contains intentionally vulnerable code patterns
- * for demonstrating GoPlus AgentGuard's security scanning capabilities.
+ * for demonstrating Axora AgentGuard's security scanning capabilities.
  *
  * DO NOT use this code in production. Every pattern here is a
- * security risk that GoPlus AgentGuard should detect.
+ * security risk that Axora AgentGuard should detect.
  *
  * Run: /agentguard scan examples/vulnerable-skill
  */

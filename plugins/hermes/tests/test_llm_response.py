@@ -109,7 +109,7 @@ def test_response_observation_does_not_replace_pre_tool_blocking():
     assert response_result is None
     assert tool_result == {
         "action": "block",
-        "message": "GoPlus AgentGuard blocked this action",
+        "message": "Axora AgentGuard blocked this action",
     }
     assert [call["action"]["actionType"] for call in calls] == ["llm_response", "shell"]
 

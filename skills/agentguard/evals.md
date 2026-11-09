@@ -1,6 +1,6 @@
-# GoPlus AgentGuard Evaluation Scenarios
+# Axora AgentGuard Evaluation Scenarios
 
-These scenarios verify that GoPlus AgentGuard correctly detects threats and handles commands.
+These scenarios verify that Axora AgentGuard correctly detects threats and handles commands.
 
 ## Scenario 1: Scan Vulnerable Code
 

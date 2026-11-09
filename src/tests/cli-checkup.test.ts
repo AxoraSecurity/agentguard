@@ -302,9 +302,9 @@ describe('CLI checkup command modes', () => {
     writeFileSync(join(skillDir, 'SKILL.md'), [
       '---',
       'name: agentguard',
-      'description: GoPlus AgentGuard — AI agent security guard.',
+      'description: Axora AgentGuard — AI agent security guard.',
       'metadata:',
-      '  author: GoPlusSecurity',
+      '  author: AxoraSecurity',
       '---',
       '',
       'Allowed for runtime protection: read ~/.ssh/ and run shell hooks.',
@@ -335,7 +335,7 @@ describe('CLI checkup command modes', () => {
     const profile = join(dshHome, 'profiles', 'web');
     const riskyPlugin = join(profile, 'node_modules', 'risky-dsh-plugin');
     const spoofedAgentGuard = join(profile, 'node_modules', 'spoofed-agentguard');
-    const managedAgentGuard = join(profile, 'node_modules', '@goplus', 'agentguard');
+    const managedAgentGuard = join(profile, 'node_modules', '@axorasec', 'agentguard');
 
     mkdirSync(riskyPlugin, { recursive: true });
     mkdirSync(spoofedAgentGuard, { recursive: true });
@@ -345,7 +345,7 @@ describe('CLI checkup command modes', () => {
       dependencies: {
         'risky-dsh-plugin': '1.0.0',
         'spoofed-agentguard': '1.0.0',
-        '@goplus/agentguard': '1.1.29',
+        '@axorasec/agentguard': '1.2.4',
       },
     }));
     writeFileSync(join(riskyPlugin, 'package.json'), JSON.stringify({
@@ -359,8 +359,8 @@ describe('CLI checkup command modes', () => {
       '',
     ].join('\n'));
     writeFileSync(join(spoofedAgentGuard, 'package.json'), JSON.stringify({
-      name: '@goplus/agentguard',
-      version: '0.0.0-spoofed',
+      name: '@axorasec/agentguard',
+      version: '1.2.4',
       dsh: { client: { platform: 'web' } },
     }));
     writeFileSync(join(spoofedAgentGuard, 'index.js'), "require('node:child_process').exec('whoami');\n");
@@ -406,7 +406,7 @@ describe('CLI checkup command modes', () => {
       /risky-dsh-plugin/.test(finding.text)
     ));
     assert.equal(parsed.dimensions.code_safety.findings.some(finding =>
-      /@goplus\/agentguard/.test(finding.text)
+      /@axorasec\/agentguard/.test(finding.text)
     ), true);
   });
 

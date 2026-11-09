@@ -26,7 +26,7 @@ hermes plugins list
 
 The plugin starts one persistent local evaluator on demand and communicates over
 current-user IPC, avoiding a Node startup for every large prompt. Make sure
-`agentguard` is on `PATH` (`npm i -g @goplus/agentguard`) or set
+`agentguard` is on `PATH` (`npm i -g @axorasec/agentguard`) or set
 `AGENTGUARD_BIN`. See [`plugins/hermes/README.md`](../plugins/hermes/README.md)
 for IPC limits, environment variables, and failure policy.
 
@@ -130,7 +130,7 @@ Hermes `pre_tool_call` supports allow or block. AgentGuard `deny` decisions are
 returned as:
 
 ```json
-{"action":"block","message":"GoPlus AgentGuard: ..."}
+{"action":"block","message":"Axora AgentGuard: ..."}
 ```
 
 AgentGuard `confirm` decisions are also represented as blocks because Hermes

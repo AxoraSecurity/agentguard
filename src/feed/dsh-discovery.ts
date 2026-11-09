@@ -67,7 +67,7 @@ export async function discoverDshSelfCheckRoots(
       if (!existsSync(dependencyRoot)) continue;
       directDependencyPaths.add(dependencyRoot);
       pluginRoots.push(dependencyRoot);
-      if (dependencyName !== '@goplus/agentguard') {
+      if (dependencyName !== '@axorasec/agentguard') {
         installedPluginDirs.push(dependencyRoot);
         const bundlePlugins = await discoverReferencedBundlePlugins(dependencyRoot, profileRoot);
         for (const pluginRoot of bundlePlugins) {
@@ -137,7 +137,7 @@ async function discoverReferencedBundlePlugins(bundleRoot: string, profileRoot: 
       }));
 
     for (const name of referencedNames) {
-      if (name === '@goplus/agentguard') continue;
+      if (name === '@axorasec/agentguard') continue;
       const childRoot = await resolveInstalledDependency(packageRoot, profileRoot, name);
       if (!childRoot) continue;
       await visit(childRoot, depth + 1);

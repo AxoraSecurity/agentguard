@@ -77,7 +77,7 @@ _REQUIRED_FIELDS: Dict[str, tuple] = {
 # Hermes pre_tool_call has no native "ask"; AgentGuard's confirm maps to a block.
 _BLOCK_DECISIONS = frozenset({"block", "confirm"})
 
-_DEFAULT_BLOCK_MESSAGE = "GoPlus AgentGuard blocked this action"
+_DEFAULT_BLOCK_MESSAGE = "Axora AgentGuard blocked this action"
 _IPC_VERSION = 1
 _DEFAULT_MAX_REQUEST_BYTES = 1024 * 1024
 _DEFAULT_MAX_RESPONSE_BYTES = 256 * 1024
@@ -164,7 +164,7 @@ class AgentGuardBridge:
             # under fail-open): we can't evaluate what we can't read.
             missing = _validate_mapped_payload(tool_name, args or {})
             if missing:
-                return _block("GoPlus AgentGuard: %s" % missing)
+                return _block("Axora AgentGuard: %s" % missing)
 
         if self._runner is None:
             try:
@@ -187,7 +187,7 @@ class AgentGuardBridge:
         if argv is None:
             return self._fail(
                 phase,
-                "AgentGuard engine not found; install @goplus/agentguard or set "
+                "AgentGuard engine not found; install @axorasec/agentguard or set "
                 "AGENTGUARD_BIN / AGENTGUARD_HERMES_HOOK",
             )
 
@@ -263,9 +263,9 @@ class AgentGuardBridge:
         bin_path = os.environ.get("AGENTGUARD_BIN") or shutil.which("agentguard")
         if not bin_path:
             if _env_truthy("AGENTGUARD_HERMES_ALLOW_NPX") and shutil.which("npx"):
-                cmd = ["npx", "-y", "@goplus/agentguard", *args]
+                cmd = ["npx", "-y", "@axorasec/agentguard", *args]
             else:
-                return "AgentGuard CLI not found. Install @goplus/agentguard (or set AGENTGUARD_BIN)."
+                return "AgentGuard CLI not found. Install @axorasec/agentguard (or set AGENTGUARD_BIN)."
         else:
             cmd = [bin_path, *args]
         try:
@@ -523,7 +523,7 @@ class AgentGuardBridge:
         # npx fetches an unpinned package over the network — unsafe for a
         # security gate, so it is opt-in only.
         if _env_truthy("AGENTGUARD_HERMES_ALLOW_NPX") and shutil.which("npx"):
-            return (["npx", "-y", "@goplus/agentguard", "protect"], "protect")
+            return (["npx", "-y", "@axorasec/agentguard", "protect"], "protect")
 
         return (None, None)
 
@@ -552,7 +552,7 @@ class AgentGuardBridge:
             return None
         if _env_truthy("AGENTGUARD_HERMES_FAIL_OPEN"):
             return None
-        return _block("GoPlus AgentGuard: %s; blocking fail-closed" % reason)
+        return _block("Axora AgentGuard: %s; blocking fail-closed" % reason)
 
 
 def _remaining_timeout(deadline: float) -> float:
@@ -776,7 +776,7 @@ def _format_reason(data: Dict[str, Any]) -> str:
     risk = data.get("riskScore")
     level = data.get("riskLevel")
     verb = "requires confirmation for" if data.get("decision") == "confirm" else "blocked"
-    base = "GoPlus AgentGuard %s this Hermes tool call (risk: %s/100, level: %s)." % (
+    base = "Axora AgentGuard %s this Hermes tool call (risk: %s/100, level: %s)." % (
         verb, risk, level,
     )
     if titles:

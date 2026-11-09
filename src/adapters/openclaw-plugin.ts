@@ -1,5 +1,5 @@
 /**
- * GoPlus AgentGuard — OpenClaw Plugin
+ * Axora AgentGuard — OpenClaw Plugin
  *
  * Registers before_tool_call, after_tool_call, and session_start hooks
  * with the OpenClaw plugin API to evaluate tool safety at runtime and
@@ -12,11 +12,11 @@
  * - Build toolName → pluginId mapping for initiating skill inference
  *
  * Usage in OpenClaw plugin config:
- *   import agentguard from '@goplus/agentguard/openclaw';
+ *   import agentguard from '@axorasec/agentguard/openclaw';
  *   export default agentguard;
  *
  * Or register manually:
- *   import { registerOpenClawPlugin } from '@goplus/agentguard';
+ *   import { registerOpenClawPlugin } from '@axorasec/agentguard';
  *   registerOpenClawPlugin(api);
  */
 
@@ -503,7 +503,7 @@ export function registerOpenClawPlugin(
         if (scanResult?.riskLevel === 'critical') {
           return {
             block: true,
-            blockReason: `GoPlus AgentGuard: Plugin "${pluginId}" has critical security findings and is blocked. Run /agentguard trust attest to manually approve.`,
+            blockReason: `Axora AgentGuard: Plugin "${pluginId}" has critical security findings and is blocked. Run /agentguard trust attest to manually approve.`,
           };
         }
       }
@@ -535,7 +535,7 @@ export function registerOpenClawPlugin(
           ) {
             return {
               block: true,
-              blockReason: 'GoPlus AgentGuard: runtime protection failed for this OpenClaw tool call. Blocking by default.',
+              blockReason: 'Axora AgentGuard: runtime protection failed for this OpenClaw tool call. Blocking by default.',
             };
           }
           logger(`[AgentGuard] Runtime protection failed; falling back to local hook policy: ${String(err)}`);
@@ -551,7 +551,7 @@ export function registerOpenClawPlugin(
       if (result.decision === 'deny') {
         return {
           block: true,
-          blockReason: result.reason || 'Blocked by GoPlus AgentGuard',
+          blockReason: result.reason || 'Blocked by Axora AgentGuard',
         };
       }
 
@@ -574,7 +574,7 @@ export function registerOpenClawPlugin(
       if (options.runtimeFailureMode === 'fallback') return undefined;
       return {
         block: true,
-        blockReason: 'GoPlus AgentGuard: failed to evaluate this OpenClaw tool call. Blocking by default.',
+        blockReason: 'Axora AgentGuard: failed to evaluate this OpenClaw tool call. Blocking by default.',
       };
     }
   });
@@ -669,7 +669,7 @@ function runtimeResultToBeforeToolCallResult(
     .join(', ');
   const action = decision === 'require_approval' ? 'requires approval' : 'blocked';
   const reason =
-    `GoPlus AgentGuard: runtime policy ${action} this OpenClaw tool call` +
+    `Axora AgentGuard: runtime policy ${action} this OpenClaw tool call` +
     ` (risk ${result.decision.riskScore}/100, ${result.decision.riskLevel}; policy ${result.decision.policyVersion}).` +
     (reasonSummary ? ` Reasons: ${reasonSummary}.` : '');
 
@@ -731,7 +731,7 @@ function runGateReason(result: ProtectResult): string {
     .slice(0, 3)
     .join(', ');
   return (
-    `GoPlus AgentGuard blocked this initial OpenClaw run input` +
+    `Axora AgentGuard blocked this initial OpenClaw run input` +
     ` (risk ${result.decision.riskScore}/100, ${result.decision.riskLevel}; policy ${result.decision.policyVersion}).` +
     (reasonSummary ? ` Reasons: ${reasonSummary}.` : '')
   );
@@ -749,7 +749,7 @@ function boundedApprovalDescription(value: string): string {
  * objects in JavaScript, so this export supports both shapes without routing
  * OpenClaw through the package root default createAgentGuard() factory.
  *
- * Usage: export default from '@goplus/agentguard/openclaw'
+ * Usage: export default from '@axorasec/agentguard/openclaw'
  */
 function register(api: OpenClawPluginApi): void {
   registerOpenClawPlugin(api);
@@ -757,7 +757,7 @@ function register(api: OpenClawPluginApi): void {
 
 const openClawEntry = Object.defineProperties(register, {
   id: { enumerable: true, value: 'agentguard' },
-  name: { enumerable: true, value: 'GoPlus AgentGuard' },
+  name: { enumerable: true, value: 'Axora AgentGuard' },
   description: {
     enumerable: true,
     value: 'AI agent security framework - blocks dangerous commands, prevents data leaks, and protects secrets',

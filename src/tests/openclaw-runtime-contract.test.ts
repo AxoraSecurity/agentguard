@@ -102,7 +102,7 @@ describe('Installed OpenClaw public hook runtime contract', {
       hookRuntime.initializeGlobalHookRunner({
         hooks: [],
         typedHooks,
-        plugins: [{ id: 'agentguard', packageVersion: '1.2.1-beta.2', status: 'loaded' }],
+        plugins: [{ id: 'agentguard', packageVersion: '1.2.4', status: 'loaded' }],
       });
       const runner = pluginRuntime.getGlobalHookRunner();
       assert.ok(runner);
@@ -123,7 +123,7 @@ describe('Installed OpenClaw public hook runtime contract', {
       assert.deepEqual(block, {
         decision: {
           outcome: 'block',
-          reason: 'GoPlus AgentGuard blocked this initial OpenClaw run input (risk 80/100, high; policy fixture-policy). Reasons: Personal data.',
+          reason: 'Axora AgentGuard blocked this initial OpenClaw run input (risk 80/100, high; policy fixture-policy). Reasons: Personal data.',
           message: 'AgentGuard blocked the initial OpenClaw run input.',
         },
         pluginId: 'agentguard',
@@ -168,7 +168,7 @@ describe('Installed OpenClaw public hook runtime contract', {
         blockReason: undefined,
         requireApproval: {
           title: 'AgentGuard approval required',
-          description: 'GoPlus AgentGuard: runtime policy requires approval this OpenClaw tool call (risk 80/100, high; policy fixture-policy). Reasons: Protected path.',
+          description: 'Axora AgentGuard: runtime policy requires approval this OpenClaw tool call (risk 80/100, high; policy fixture-policy). Reasons: Protected path.',
           severity: 'critical',
           timeoutMs: 120_000,
           allowedDecisions: ['allow-once', 'deny'],

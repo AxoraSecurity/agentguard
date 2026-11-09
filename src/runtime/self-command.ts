@@ -262,7 +262,7 @@ function isVerifiedAgentGuardNpxInvocation(tokens: string[], start: number, outp
       || !tokens.slice(0, start).every((token) => token === 'command' || token === 'builtin')) return false;
   let index = start + 1;
   if (tokens[index] === '-y' || tokens[index] === '--yes') index += 1;
-  return /^@goplus\/agentguard(?:@(?:\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?|latest|beta))?$/.test(tokens[index] || '')
+  return /^@axorasec\/agentguard(?:@(?:\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?|latest|beta))?$/.test(tokens[index] || '')
     && (outputOnly || ['init', 'connect', 'disconnect', 'status', 'policy', 'privacy', 'doctor',
       'scan', 'dsh-scan', 'dsh-scan-batch', 'dsh-compare', 'approvals',
       'subscribe', 'checkup'].includes(tokens[index + 1] || ''));

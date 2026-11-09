@@ -2,13 +2,13 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in GoPlus AgentGuard, please report it responsibly.
+If you discover a security vulnerability in Axora AgentGuard, please report it responsibly.
 
 **Do NOT open a public GitHub issue for security vulnerabilities.**
 
 ### How to Report
 
-Email: **security@gopluslabs.io**
+Use [GitHub private vulnerability reporting](https://github.com/AxoraSecurity/agentguard/security/advisories/new) to contact the maintainers privately. If that option is unavailable, ask the maintainers for a private reporting channel without sharing vulnerability details publicly.
 
 Please include:
 - Description of the vulnerability

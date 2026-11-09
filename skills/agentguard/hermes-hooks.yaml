@@ -1,4 +1,4 @@
-# GoPlus AgentGuard hook template for Hermes Agent.
+# Axora AgentGuard hook template for Hermes Agent.
 #
 # Copy this block into ~/.hermes/config.yaml and replace AGENTGUARD_SKILL_DIR
 # with the absolute path to the installed AgentGuard skill directory, e.g.

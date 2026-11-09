@@ -1,13 +1,13 @@
 {
   "name": "agentguard",
-  "version": "1.0.0",
-  "description": "GoPlus AgentGuard — AI agent security guard. Blocks dangerous commands, prevents data leaks, protects secrets. 20 detection rules, runtime action evaluation, trust registry.",
+  "version": "1.2.4",
+  "description": "Axora AgentGuard — AI agent security guard. Blocks dangerous commands, prevents data leaks, protects secrets. 20 detection rules, runtime action evaluation, trust registry.",
   "author": {
-    "name": "GoPlus Security",
-    "url": "https://github.com/GoPlusSecurity"
+    "name": "Axora Security",
+    "url": "https://github.com/AxoraSecurity"
   },
-  "homepage": "https://github.com/GoPlusSecurity/agentguard",
-  "repository": "https://github.com/GoPlusSecurity/agentguard",
+  "homepage": "https://github.com/AxoraSecurity/agentguard",
+  "repository": "https://github.com/AxoraSecurity/agentguard",
   "license": "MIT",
   "keywords": ["security", "agent-protection", "web3", "claude-code", "scanner", "trust-registry"]
 }

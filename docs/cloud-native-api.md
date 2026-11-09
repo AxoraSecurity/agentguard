@@ -7,7 +7,7 @@ This document summarizes the Cloud APIs that a local/native AgentGuard runtime s
 Production base URL:
 
 ```text
-https://www.agentguard.one
+https://agentguard.axorasecurity.com
 ```
 
 All protected runtime APIs require an AgentGuard API key:
@@ -87,7 +87,7 @@ Allowed `agent` values:
 auto | openclaw | hermes | dsh
 ```
 
-The hosted script installs `@goplus/agentguard`, initializes integrations, and connects Cloud. With no explicit host it calls:
+The hosted script installs `@axorasec/agentguard`, initializes integrations, and connects Cloud. With no explicit host it calls:
 
 ```bash
 agentguard init --cloud "$AGENTGUARD_CLOUD_URL"

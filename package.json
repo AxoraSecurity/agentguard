@@ -1,7 +1,7 @@
 {
-  "name": "@goplus/agentguard",
+  "name": "@axorasec/agentguard",
   "version": "1.2.4",
-  "description": "GoPlus AgentGuard — Security guard for AI agents. Blocks dangerous commands, prevents data leaks, protects secrets. 20 detection rules, runtime action evaluation, trust registry.",
+  "description": "Axora AgentGuard — Security guard for AI agents. Blocks dangerous commands, prevents data leaks, protects secrets. 20 detection rules, runtime action evaluation, trust registry.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "openclaw": {
@@ -18,8 +18,8 @@
     }
   },
   "bin": {
-    "agentguard": "./dist/cli.js",
-    "agentguard-mcp": "./dist/mcp-server.js"
+    "agentguard": "dist/cli.js",
+    "agentguard-mcp": "dist/mcp-server.js"
   },
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
@@ -49,18 +49,21 @@
     "security",
     "ai-agent",
     "web3",
-    "goplus",
+    "axora",
     "claude-code",
     "codex",
     "scanner",
     "trust-registry",
     "hooks"
   ],
-  "author": "GoPlusSecurity",
+  "author": "AxoraSecurity",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GoPlusSecurity/agentguard.git"
+    "url": "git+https://github.com/AxoraSecurity/agentguard.git"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -80,9 +83,9 @@
     "@types/node": "22.19.15",
     "typescript": "5.7.3"
   },
-  "homepage": "https://github.com/GoPlusSecurity/agentguard#readme",
+  "homepage": "https://github.com/AxoraSecurity/agentguard#readme",
   "bugs": {
-    "url": "https://github.com/GoPlusSecurity/agentguard/issues"
+    "url": "https://github.com/AxoraSecurity/agentguard/issues"
   },
   "files": [
     "dist",

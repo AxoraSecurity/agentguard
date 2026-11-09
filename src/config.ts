@@ -56,7 +56,7 @@ export interface AgentGuardPaths {
   approvalStorePath: string;
 }
 
-const DEFAULT_CLOUD_URL = 'https://www.agentguard.one';
+const DEFAULT_CLOUD_URL = 'https://agentguard.axorasecurity.com';
 const API_KEY_PATTERN = /^ag_live_[A-Za-z0-9_-]{8,}$/;
 
 export function getAgentGuardPaths(): AgentGuardPaths {

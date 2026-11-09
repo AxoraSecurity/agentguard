@@ -1,6 +1,6 @@
 # Vulnerable Skill Demo
 
-This directory contains intentionally vulnerable code for testing GoPlus AgentGuard security scanning.
+This directory contains intentionally vulnerable code for testing Axora AgentGuard security scanning.
 
 **DO NOT use any code from this directory in production.**
 
@@ -10,7 +10,7 @@ This directory contains intentionally vulnerable code for testing GoPlus AgentGu
 /agentguard scan examples/vulnerable-skill
 ```
 
-## What GoPlus AgentGuard Should Detect
+## What Axora AgentGuard Should Detect
 
 ### JavaScript (`malicious-helper.js`)
 - `SHELL_EXEC` — child_process exec

@@ -1,4 +1,4 @@
-# GoPlus AgentGuard
+# Axora AgentGuard
 
 AI Agent Security Guard — protect your AI agents from dangerous commands, data leaks, and malicious skills.
 
@@ -33,8 +33,8 @@ skill into `HERMES_HOME` or `~/.hermes` and merge the hook entries into
 `config.yaml`. The `hermes-hooks.yaml` file remains available for manual setups.
 
 The hook runner is `scripts/hermes-hook.js`. It uses the published
-`@goplus/agentguard` package, so run `npm install` inside this skill directory
-or install `@goplus/agentguard` globally if the package is not already present.
+`@axorasec/agentguard` package, so run `npm install` inside this skill directory
+or install `@axorasec/agentguard` globally if the package is not already present.
 
 ## Agent Health Checkup 🦞
 
@@ -72,4 +72,4 @@ The report opens automatically in your browser. It includes a shareable image yo
 
 ## Author
 
-Built by [GoPlus Security](https://gopluslabs.io) — the leading Web3 security infrastructure provider.
+Built by [Axora Security](https://github.com/AxoraSecurity).

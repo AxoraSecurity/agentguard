@@ -1,4 +1,4 @@
-"""GoPlus AgentGuard — native Hermes Agent plugin.
+"""Axora AgentGuard — native Hermes Agent plugin.
 
 Registers Hermes lifecycle hooks that route tool calls through the AgentGuard
 decision engine (see :mod:`bridge`), plus a ``/agentguard`` slash command.
@@ -40,7 +40,7 @@ def register(ctx: Any, bridge: Optional[AgentGuardBridge] = None) -> None:
         register_command(
             "agentguard",
             _make_status_command(guard),
-            description="Show GoPlus AgentGuard status, recent audit report, or run a checkup.",
+            description="Show Axora AgentGuard status, recent audit report, or run a checkup.",
         )
 
 
@@ -62,7 +62,7 @@ def _make_pre_api_request(guard: AgentGuardBridge):
             _warn_observer_decision("request", request_id, result)
         except Exception as exc:
             logger.warning(
-                "GoPlus AgentGuard Hermes request observer failed; model request remains observe_only: %s",
+                "Axora AgentGuard Hermes request observer failed; model request remains observe_only: %s",
                 exc,
             )
         return None
@@ -78,7 +78,7 @@ def _make_post_api_request(guard: AgentGuardBridge):
             _warn_observer_decision("response", request_id, result)
         except Exception as exc:
             logger.warning(
-                "GoPlus AgentGuard Hermes response observer failed; response remains observe_only: %s",
+                "Axora AgentGuard Hermes response observer failed; response remains observe_only: %s",
                 exc,
             )
         return None
@@ -90,7 +90,7 @@ def _warn_observer_decision(kind: str, request_id: Any, result: Optional[Dict[st
     if not result or result.get("policyDecision") not in {"block", "require_approval"}:
         return
     logger.warning(
-        "GoPlus AgentGuard observed a Hermes model %s policy violation "
+        "Axora AgentGuard observed a Hermes model %s policy violation "
         "(request_id=%s, enforcement=would_block); the Hermes API hook is observe_only",
         kind,
         request_id or "unknown",

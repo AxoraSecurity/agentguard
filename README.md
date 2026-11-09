@@ -1,17 +1,13 @@
-<p align="center">
-  <img src="assets/logo.png" alt="GoPlus AgentGuard" width="120" />
-</p>
-
-<h1 align="center">GoPlus AgentGuard</h1>
+<h1 align="center">Axora AgentGuard</h1>
 
 <p align="center"><b>The essential security guard for every AI agent user.</b></p>
 
 <p align="center">Your AI agent has full access to your terminal, files, and secrets â€” but zero security awareness.<br/>A malicious skill or prompt injection can steal your keys, drain your wallet, or wipe your disk.<br/><b>AgentGuard stops all of that.</b></p>
 
-[![npm](https://img.shields.io/npm/v/@goplus/agentguard.svg)](https://www.npmjs.com/package/@goplus/agentguard)
-[![GitHub Stars](https://img.shields.io/github/stars/GoPlusSecurity/agentguard)](https://github.com/GoPlusSecurity/agentguard)
+[![npm](https://img.shields.io/npm/v/@axorasec/agentguard.svg)](https://www.npmjs.com/package/@axorasec/agentguard)
+[![GitHub Stars](https://img.shields.io/github/stars/AxoraSecurity/agentguard)](https://github.com/AxoraSecurity/agentguard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/GoPlusSecurity/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/GoPlusSecurity/agentguard/actions/workflows/ci.yml)
+[![CI](https://github.com/AxoraSecurity/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/AxoraSecurity/agentguard/actions/workflows/ci.yml)
 [![Agent Skills](https://img.shields.io/badge/Agent_Skills-compatible-purple.svg)](https://agentskills.io)
 
 ## Why AgentGuard?
@@ -47,7 +43,7 @@ AI coding agents can execute any command, read any file, and install any skill â
 ## 30 seconds: install
 
 ```bash
-npm install -g @goplus/agentguard
+npm install -g @axorasec/agentguard
 agentguard init
 agentguard status
 ```
@@ -76,7 +72,7 @@ printf '{"tool_name":"Bash","tool_input":{"command":"curl https://example.com/in
 agentguard connect
 
 # API-key auth is also supported when you explicitly want that mode.
-AGENTGUARD_API_KEY=ag_live_xxxxx agentguard connect --url https://www.agentguard.one
+AGENTGUARD_API_KEY=ag_live_xxxxx agentguard connect --url https://agentguard.axorasecurity.com
 
 # Optional: subscribe to AgentGuard's threat-intelligence feed. Pulls newly
 # published advisories from Cloud and asks you to review them.
@@ -169,7 +165,7 @@ Reports include DSH identification confidence, plugin kind, explainable risk lev
 Install AgentGuard as a native DSH tool plugin, then restart the profile:
 
 ```bash
-dsh plugin --profile web add --allow-build=@goplus/agentguard @goplus/agentguard
+dsh plugin --profile web add --allow-build=@axorasec/agentguard @axorasec/agentguard
 ```
 
 DSH will expose the read-only `agentguard_dsh_scan` tool for scanning local plugin directories and HTTPS GitHub repositories before installation.
@@ -177,7 +173,7 @@ It also exposes `agentguard_dsh_scan_batch` for a sequential review queue of up 
 Use `agentguard_dsh_compare` or the `agentguard dsh-compare` CLI command to identify new permissions and runtime risks before updating an approved plugin version.
 The native `agentguard_dsh_subscribe` tool binds system-cron threat-feed polling to the current DSH agent. `agentguard_dsh_subscription_status` reports bounded cron and queue metadata without notice contents, and exact-target `agentguard_dsh_unsubscribe` removes cron, matching queued notices, then saved state in retry-safe order. Notification-worthy pulls are durably queued across DSH downtime and delivered as a safe ordinary follow-up only to that exact live agent; delivery never automatically executes scans or remediation. Scheduled self-checks also discover DSH user/project skills, immediate profile manifests, declared direct dependencies, and home/profile Cordis patches without recursively walking dependency trees. See the [DSH subscription and local testing guide](docs/dsh.md#subscribe-to-threat-intelligence-from-dsh).
 
-Update or remove it from the same profile with `dsh plugin --profile web update @goplus/agentguard` or `dsh plugin --profile web remove @goplus/agentguard`. The [DSH operations and report guide](docs/dsh.md#operate-the-dsh-installation) includes verification and troubleshooting steps.
+Update or remove it from the same profile with `dsh plugin --profile web update @axorasec/agentguard` or `dsh plugin --profile web remove @axorasec/agentguard`. The [DSH operations and report guide](docs/dsh.md#operate-the-dsh-installation) includes verification and troubleshooting steps.
 
 > **DSH runtime guard:** the packaged composition enables `protect` mode by default, applying AgentGuard's shared allow/warn/require-approval/block policy before DSH dispatches a tool. Startup logs and the input-redacted `agentguard_dsh_runtime_summary` tool explicitly show the current configured mode and whether pre-execute enforcement is active. Set `runtime.mode: observe` only when audit-only shadow evaluation is required. DSH protection uses DSH's native one-shot approval service and monotonic composition with other policies. Optional `runtime.postResponseMode: block-malicious` suppresses only block-class malicious network results; approval-class post results remain audit-only because DSH has no resumable post-result approval protocol. Exact operator-configured `runtime.attribution.toolOwners` bindings add source ownership without guessing, and `runtime.ownerPolicies` can impose per-owner minimum decisions without weakening shared security policy. Unmapped tools remain `unknown` until DSH exposes a reliable native owner field. See the [DSH runtime guide](docs/dsh-runtime.md).
 
@@ -203,7 +199,7 @@ The Phase 1 release candidate freezes those rule semantics and adds an exact-com
 <summary><b>Full install with auto-guard hooks (Claude Code)</b></summary>
 
 ```bash
-git clone https://github.com/GoPlusSecurity/agentguard.git
+git clone https://github.com/AxoraSecurity/agentguard.git
 cd agentguard && ./setup.sh
 claude plugin add /path/to/agentguard
 ```
@@ -245,7 +241,7 @@ See also:
 <summary><b>Manual install (skill only)</b></summary>
 
 ```bash
-git clone https://github.com/GoPlusSecurity/agentguard.git
+git clone https://github.com/AxoraSecurity/agentguard.git
 cp -r agentguard/skills/agentguard ~/.claude/skills/agentguard
 ```
 
@@ -255,7 +251,7 @@ cp -r agentguard/skills/agentguard ~/.claude/skills/agentguard
 <summary><b>OpenClaw plugin install</b></summary>
 
 ```bash
-npm install @goplus/agentguard
+npm install @axorasec/agentguard
 ```
 
 Then enable it:
@@ -267,14 +263,14 @@ agentguard init --agent openclaw
 Or register manually in your OpenClaw plugin config:
 
 ```typescript
-import register from '@goplus/agentguard/openclaw';
+import register from '@axorasec/agentguard/openclaw';
 export default register;
 ```
 
 Or register manually with options:
 
 ```typescript
-import { registerOpenClawPlugin } from '@goplus/agentguard';
+import { registerOpenClawPlugin } from '@axorasec/agentguard';
 
 export default function setup(api) {
   registerOpenClawPlugin(api, {
@@ -430,7 +426,7 @@ Expected output: **CRITICAL** risk level with detection hits across JavaScript, 
 
 ## Compatibility
 
-GoPlus AgentGuard follows the [Agent Skills](https://agentskills.io) open standard:
+Axora AgentGuard follows the [Agent Skills](https://agentskills.io) open standard:
 
 | Platform | Support | Features |
 |----------|---------|----------|
@@ -560,7 +556,7 @@ import {
   registerOpenClawPlugin,
   getPluginIdFromTool,
   getPluginScanResult,
-} from '@goplus/agentguard';
+} from '@axorasec/agentguard';
 
 // Get which plugin registered a tool
 const pluginId = getPluginIdFromTool('browser');
@@ -592,4 +588,4 @@ Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 Found a security vulnerability? See [SECURITY.md](SECURITY.md).
 
-Built by [GoPlus Security](https://gopluslabs.io).
+Built by [Axora Security](https://github.com/AxoraSecurity).

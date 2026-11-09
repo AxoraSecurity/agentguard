@@ -36,7 +36,7 @@ export function installAgentTemplates(agent: AgentInstaller, options: {
 function installDsh(root: string): InstallResult {
   const args = [
     'plugin', '--profile', 'web', 'add',
-    '--allow-build=@goplus/agentguard', '@goplus/agentguard',
+    '--allow-build=@axorasec/agentguard', '@axorasec/agentguard',
   ];
   const result = spawnSync('dsh', args, {
     cwd: root,
@@ -165,7 +165,7 @@ const HERMES_PLUGIN_REQUIRED_FILES = ['plugin.yaml', '__init__.py'];
 function copyBundledHermesPlugin(targetDir: string, force: boolean): void {
   const sourceDir = resolve(__dirname, '..', 'plugins', 'hermes');
   if (!existsSync(sourceDir)) {
-    throw new Error(`Bundled Hermes plugin not found at ${sourceDir}. Reinstall @goplus/agentguard.`);
+    throw new Error(`Bundled Hermes plugin not found at ${sourceDir}. Reinstall @axorasec/agentguard.`);
   }
   if (!(existsSync(targetDir) && !force)) {
     mkdirSync(dirname(targetDir), { recursive: true });
@@ -836,13 +836,13 @@ function openClawPluginTemplate(): string {
 
 function loadAgentGuard() {
   try {
-    return require('@goplus/agentguard');
+    return require('@axorasec/agentguard');
   } catch (firstError) {
     try {
       return require(agentGuardPackageRoot);
     } catch (fallbackError) {
       const error = new Error(
-        'Unable to load @goplus/agentguard from OpenClaw plugin. ' +
+        'Unable to load @axorasec/agentguard from OpenClaw plugin. ' +
         'Tried package resolution and fallback path: ' + agentGuardPackageRoot
       );
       error.cause = fallbackError;
@@ -861,7 +861,7 @@ function register(api) {
 
 module.exports = Object.defineProperties(register, {
   id: { enumerable: true, value: 'agentguard' },
-  name: { enumerable: true, value: 'GoPlus AgentGuard' },
+  name: { enumerable: true, value: 'Axora AgentGuard' },
   description: {
     enumerable: true,
     value: 'AI agent security framework - blocks dangerous commands, prevents data leaks, and protects secrets',
@@ -894,7 +894,7 @@ function openClawPackageManifest(agent: 'openclaw' | 'qclaw' = 'openclaw'): unkn
 function openClawPluginManifest(): unknown {
   return {
     id: 'agentguard',
-    name: 'GoPlus AgentGuard',
+    name: 'Axora AgentGuard',
     description: 'AI agent security framework - blocks dangerous commands, prevents data leaks, and protects secrets',
     activation: {
       onStartup: true,

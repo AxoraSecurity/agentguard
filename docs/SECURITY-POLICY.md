@@ -1,4 +1,4 @@
-# GoPlus AgentGuard Security Policy
+# Axora AgentGuard Security Policy
 
 Unified security policy reference for all platforms (Claude Code, OpenClaw, and future integrations).
 
@@ -468,7 +468,7 @@ When AgentGuard registers as an OpenClaw plugin, it automatically:
 **Configuration** (Plugin registration):
 
 ```typescript
-import { registerOpenClawPlugin } from '@goplus/agentguard';
+import { registerOpenClawPlugin } from '@axorasec/agentguard';
 
 // Basic registration (auto-scan enabled)
 registerOpenClawPlugin(api);
@@ -486,7 +486,7 @@ registerOpenClawPlugin(api, {
 import {
   getPluginIdFromTool,    // Get plugin ID from tool name
   getPluginScanResult,    // Get cached scan result for plugin
-} from '@goplus/agentguard';
+} from '@axorasec/agentguard';
 ```
 
 ---

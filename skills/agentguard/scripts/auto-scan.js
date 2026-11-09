@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * GoPlus AgentGuard — SessionStart Auto-Scan Hook
+ * Axora AgentGuard — SessionStart Auto-Scan Hook
  *
  * Runs on session startup to discover and scan newly installed skills.
  * For each skill in supported agent skill directories:
@@ -45,7 +45,7 @@ try {
   createAgentGuard = gs.createAgentGuard || gs.default;
 } catch {
   try {
-    const gs = await import('@goplus/agentguard');
+    const gs = await import('@axorasec/agentguard');
     createAgentGuard = gs.createAgentGuard || gs.default;
   } catch {
     // Can't load engine — exit silently
@@ -159,7 +159,7 @@ async function main() {
       `  ${r.name}: ${r.risk_level}${r.risk_tags.length ? ` [${r.risk_tags.join(', ')}]` : ''}`
     );
     process.stderr.write(
-      `GoPlus AgentGuard: scanned ${scanned} skill(s)\n${lines.join('\n')}\n` +
+      `Axora AgentGuard: scanned ${scanned} skill(s)\n${lines.join('\n')}\n` +
       `Use /agentguard trust attest to register trusted skills.\n`
     );
   }

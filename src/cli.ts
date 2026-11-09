@@ -162,7 +162,7 @@ async function main() {
     .description('Connect local AgentGuard to AgentGuard Cloud')
     .option('--key <key>', 'AgentGuard Cloud API key (prefer AGENTGUARD_API_KEY to avoid shell history)')
     .option('--api-key <key>', 'AgentGuard Cloud API key (prefer AGENTGUARD_API_KEY to avoid shell history)')
-    .option('--url <url>', 'AgentGuard Cloud URL', 'https://www.agentguard.one')
+    .option('--url <url>', 'AgentGuard Cloud URL', 'https://agentguard.axorasecurity.com')
     .option('--cloud <url>', 'AgentGuard Cloud URL')
     .action(async (options) => {
       const apiKey = options.key || options.apiKey || process.env.AGENTGUARD_API_KEY;
@@ -172,7 +172,7 @@ async function main() {
           throw new Error('AgentGuard Cloud connect supports API-key auth or Agent JWT registration for OpenClaw, Hermes, and DSH. No API key was provided, and no supported Agent JWT host has been initialized. Run `agentguard init` to auto-detect the host, then rerun `agentguard connect`; or pass --key, --api-key, or AGENTGUARD_API_KEY for API-key auth.');
         }
         config = withDetectedAgentJwtHost(config);
-        const cloudUrl = normalizeCloudUrl(options.cloud || options.url || config.cloudUrl || 'https://www.agentguard.one');
+        const cloudUrl = normalizeCloudUrl(options.cloud || options.url || config.cloudUrl || 'https://agentguard.axorasecurity.com');
         if (config.agentId && config.agentJwt) {
           const existingConfig = { ...config, cloudUrl };
           const client = new AgentGuardCloudClient(existingConfig);
@@ -1782,7 +1782,7 @@ function isManagedAgentGuardSkillDir(dir: string): boolean {
     return false;
   }
   const hasAgentGuardIdentity = /^name:\s*agentguard\s*$/im.test(body) &&
-    /GoPlus AgentGuard|GoPlusSecurity/i.test(body);
+    /(?:Axora|GoPlus) AgentGuard|(?:Axora|GoPlus)Security/i.test(body);
   if (!hasAgentGuardIdentity) return false;
   const expectedScripts = [
     join(dir, 'scripts', 'guard-hook.js'),
@@ -2707,7 +2707,7 @@ async function registerAgentCredential(options: {
     clearAgentJwt();
   }
   const baseConfig = ensureConfig();
-  const cloudUrl = normalizeCloudUrl(options.cloudUrl || baseConfig.cloudUrl || 'https://www.agentguard.one');
+  const cloudUrl = normalizeCloudUrl(options.cloudUrl || baseConfig.cloudUrl || 'https://agentguard.axorasecurity.com');
   const client = new AgentGuardCloudClient({ ...baseConfig, cloudUrl });
   const registration = await client.registerAgent({
     metadata: {

@@ -28,15 +28,15 @@ try {
 
   await dsh(['plugin', '--profile', 'web', 'add', `link:${repoRoot}`]);
   const installedManifest = JSON.parse(await readFile(join(profileDir, 'package.json'), 'utf8'));
-  assert.equal(installedManifest.dependencies?.['@goplus/agentguard'], `link:${repoRoot}`);
-  assert.ok(installedManifest.dsh?.profile?.bundles?.includes('@goplus/agentguard'));
+  assert.equal(installedManifest.dependencies?.['@axorasec/agentguard'], `link:${repoRoot}`);
+  assert.ok(installedManifest.dsh?.profile?.bundles?.includes('@axorasec/agentguard'));
 
   const { stdout: composed } = await dsh(['web', '--dump-config']);
   assert.match(composed, /id:\s*agentguard-dsh-plugin/);
-  assert.match(composed, /@goplus\/agentguard\/dist\/dsh\/plugin\.js/);
+  assert.match(composed, /@axorasec\/agentguard\/dist\/dsh\/plugin\.js/);
   assert.match(composed, /runtime:\s*\n\s+mode:\s*protect/);
 
-  const installedPlugin = join(profileDir, 'node_modules/@goplus/agentguard/dist/dsh/plugin.js');
+  const installedPlugin = join(profileDir, 'node_modules/@axorasec/agentguard/dist/dsh/plugin.js');
   await access(installedPlugin);
   const plugin = await import(`${pathToFileURL(installedPlugin).href}?lifecycle=${Date.now()}`);
   const registeredTools = [];
@@ -62,10 +62,10 @@ try {
   const batchResult = await registeredBatch.execute({ targets: [{ target: safeFixture }] });
   assert.equal(batchResult.succeeded, 1);
 
-  await dsh(['plugin', '--profile', 'web', 'remove', '@goplus/agentguard']);
+  await dsh(['plugin', '--profile', 'web', 'remove', '@axorasec/agentguard']);
   const removedManifest = JSON.parse(await readFile(join(profileDir, 'package.json'), 'utf8'));
-  assert.equal(removedManifest.dependencies?.['@goplus/agentguard'], undefined);
-  assert.ok(!removedManifest.dsh?.profile?.bundles?.includes('@goplus/agentguard'));
+  assert.equal(removedManifest.dependencies?.['@axorasec/agentguard'], undefined);
+  assert.ok(!removedManifest.dsh?.profile?.bundles?.includes('@axorasec/agentguard'));
   const { stdout: removedComposition } = await dsh(['web', '--dump-config']);
   assert.doesNotMatch(removedComposition, /agentguard-dsh-plugin/);
 

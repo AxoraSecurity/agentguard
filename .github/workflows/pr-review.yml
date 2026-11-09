@@ -63,7 +63,7 @@ jobs:
           fi
 
           PROMPT=$(cat <<'EOF'
-          You are reviewing a GitHub pull request for GoPlus AgentGuard, a TypeScript security framework for AI agents.
+          You are reviewing a GitHub pull request for Axora AgentGuard, a TypeScript security framework for AI agents.
 
           Review only the PR diff provided below. Focus on concrete, actionable problems introduced by the patch:
           - security vulnerabilities

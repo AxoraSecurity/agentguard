@@ -5,7 +5,7 @@ AgentGuard still ships an MCP server for hosts that prefer MCP tools over hooks.
 ## Run
 
 ```bash
-npx -y --package @goplus/agentguard agentguard-mcp
+npx -y --package @axorasec/agentguard agentguard-mcp
 ```
 
 If installed globally:

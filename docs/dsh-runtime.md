@@ -17,7 +17,7 @@ The npm bundle composes `protect` by default. A custom DSH composition can resta
 ```yaml
 - insert:
     - id: agentguard-dsh-plugin
-      name: '@goplus/agentguard/dist/dsh/plugin.js'
+      name: '@axorasec/agentguard/dist/dsh/plugin.js'
       config:
         runtime:
           mode: protect
