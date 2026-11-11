@@ -13,7 +13,7 @@ npm install -g @axorasec/agentguard
 agentguard init --agent dsh --profile desktop  # DSH Desktop
 ```
 
-Bare `agentguard init` detects DSH when a profile exists or DSH is managing the shell. It selects the sole installed profile automatically. If multiple profiles exist, choose the one used by your DSH host with `--profile <name>` or `AGENTGUARD_DSH_PROFILE=<name>`; `--profile` wins. Do not assume the desktop app uses `web`. If no profile exists, specify one explicitly. Initialization fails if the DSH CLI is missing from PATH or the selected profile's `package.json` does not confirm the bundle in `dsh.profile.bundles`. Restart the selected profile after initialization. An external bootstrap script must pass through the selected profile and must not set `AGENTGUARD_DSH_PROFILE=web` as an implicit default.
+Bare `agentguard init` detects DSH when a profile exists or DSH is managing the shell. It selects the sole installed profile automatically. If multiple profiles exist, choose the one used by your DSH host with `--profile <name>` or `AGENTGUARD_DSH_PROFILE=<name>`; `--profile` wins. Do not assume the desktop app uses `web`. If no profile exists, specify one explicitly. Initialization fails if the DSH CLI is missing from PATH or the selected profile's `package.json` does not confirm the bundle in `dsh.profile.bundles`. Restart the selected profile after initialization. `agentguard status` verifies the saved profile manifest and reports a nonzero exit status if the DSH bundle is missing or the previously selected profile is unknown. An external bootstrap script must pass through the selected profile and must not set `AGENTGUARD_DSH_PROFILE=web` as an implicit default.
 
 The equivalent low-level DSH command (here for `desktop`) is:
 

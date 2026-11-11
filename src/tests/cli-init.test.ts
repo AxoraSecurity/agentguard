@@ -231,9 +231,11 @@ describe('init CLI', () => {
     const config = JSON.parse(readFileSync(join(home, 'config.json'), 'utf8')) as {
       agentHost?: string;
       agentHosts?: string[];
+      dshProfile?: string;
     };
     assert.equal(config.agentHost, 'dsh');
     assert.deepEqual(config.agentHosts, ['dsh']);
+    assert.equal(config.dshProfile, 'web');
     assert.deepEqual(JSON.parse(readFileSync(callLog, 'utf8')), [
       'plugin', '--profile', 'web', 'add',
       '--allow-build=@axorasec/agentguard', '@axorasec/agentguard',
@@ -355,6 +357,49 @@ describe('init CLI', () => {
       cwd, env: { ...process.env, AGENTGUARD_HOME: home, DSH_HOME: dshHome,
         PATH: '/usr/bin:/bin', AGENTGUARD_DSH_PROFILE: undefined },
     }), /DSH CLI was not found on PATH/);
+  });
+
+  it('reports a previously configured DSH host as unverified after its bundle disappears and reinit fails', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'agentguard-init-dsh-stale-home-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'agentguard-init-dsh-stale-cwd-'));
+    const dshHome = join(home, 'dsh');
+    const bin = join(cwd, 'bin');
+    const callLog = join(cwd, 'dsh-call.json');
+    const cliPath = resolve('dist', 'cli.js');
+    installFakeDsh(bin, callLog);
+    const env = { ...process.env, AGENTGUARD_HOME: home, DSH_HOME: dshHome, DSH_CALL_LOG: callLog,
+      PATH: `${bin}:${process.env.PATH || ''}` };
+    await execFileAsync(process.execPath, [cliPath, 'init', '--agent', 'dsh', '--profile', 'desktop'], { cwd, env });
+    const { stdout: healthyStatus } = await execFileAsync(process.execPath, [cliPath, 'status'], { cwd, env });
+    assert.match(healthyStatus, /DSH integration: verified in profile desktop/);
+    assert.match(healthyStatus, /Agent host: dsh\n/);
+
+    writeFileSync(join(dshHome, 'profiles', 'desktop', 'package.json'), '{}');
+    await assert.rejects(execFileAsync(process.execPath, [cliPath, 'init', '--agent', 'dsh', '--profile', 'desktop'], {
+      cwd, env: { ...env, DSH_FAKE_NO_MANIFEST: '1' },
+    }), /does not list @axorasec\/agentguard/);
+    const config = JSON.parse(readFileSync(join(home, 'config.json'), 'utf8')) as { agentHost?: string; dshProfile?: string };
+    assert.equal(config.agentHost, 'dsh');
+    assert.equal(config.dshProfile, 'desktop');
+    await assert.rejects(execFileAsync(process.execPath, [cliPath, 'status'], { cwd, env }), (error: Error & { stdout?: string; code?: number }) => {
+      assert.equal(error.code, 1);
+      assert.match(error.stdout ?? '', /Agent host: dsh \(integration not verified\)/);
+      assert.match(error.stdout ?? '', /DSH integration: not verified in profile desktop/);
+      return true;
+    });
+  });
+
+  it('does not present legacy DSH configuration without a recorded profile as verified', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'agentguard-init-dsh-legacy-home-'));
+    const cliPath = resolve('dist', 'cli.js');
+    writeFileSync(join(home, 'config.json'), JSON.stringify({ agentHost: 'dsh', agentHosts: ['dsh'] }));
+    await assert.rejects(execFileAsync(process.execPath, [cliPath, 'status'], {
+      env: { ...process.env, AGENTGUARD_HOME: home, DSH_HOME: join(home, 'dsh') },
+    }), (error: Error & { stdout?: string; code?: number }) => {
+      assert.equal(error.code, 1);
+      assert.match(error.stdout ?? '', /DSH integration: not verified \(profile unknown\)/);
+      return true;
+    });
   });
 
   it('does not persist DSH as initialized when native bundle installation fails', async () => {
@@ -657,9 +702,11 @@ describe('init CLI', () => {
     const config = JSON.parse(readFileSync(join(home, 'config.json'), 'utf8')) as {
       agentHost?: string;
       agentHosts?: string[];
+      dshProfile?: string;
     };
     assert.equal(config.agentHost, 'openclaw');
     assert.deepEqual(config.agentHosts, ['openclaw', 'dsh']);
+    assert.equal(config.dshProfile, 'web');
   });
 
   it('does not fail auto init when no supported agent directory exists', async () => {

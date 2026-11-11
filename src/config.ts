@@ -9,6 +9,8 @@ export interface AgentGuardConfig {
   level: 'strict' | 'balanced' | 'permissive';
   agentHost?: AgentGuardAgentHost;
   agentHosts?: AgentGuardAgentHost[];
+  /** Profile where the DSH bundle was last verified during init. */
+  dshProfile?: string;
   cloudUrl?: string;
   apiKey?: string;
   agentId?: string;
@@ -113,6 +115,8 @@ export function loadConfig(): AgentGuardConfig {
       level: normalizeLevel(parsed.level) ?? fallback.level,
       agentHost: normalizeAgentHost(parsed.agentHost),
       agentHosts: normalizeAgentHosts(parsed.agentHosts),
+      dshProfile: typeof parsed.dshProfile === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(parsed.dshProfile)
+        ? parsed.dshProfile : undefined,
       cloudUrl: parsed.cloudUrl || fallback.cloudUrl,
       policyCachePath: parsed.policyCachePath || fallback.policyCachePath,
       auditPath: parsed.auditPath || fallback.auditPath,

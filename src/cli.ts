@@ -34,7 +34,7 @@ import { formatProtectResult, protectAction, exitCodeForDecision } from './runti
 import { approvePendingApproval, listPendingApprovals } from './runtime/approvals.js';
 import { getDefaultEffectiveRuntimePolicy, loadCachedPolicy, saveCachedPolicy } from './runtime/policy.js';
 import type { RuntimeActionType, RuntimeAgentHost } from './runtime/types.js';
-import { installAgentTemplates, installedDshProfiles, type AgentInstaller, type InstallResult } from './installers.js';
+import { installAgentTemplates, installedDshProfiles, isDshProfileBundleInstalled, type AgentInstaller, type InstallResult } from './installers.js';
 import { packageVersion } from './version.js';
 import { runSelfCheckForAdvisory } from './feed/selfcheck.js';
 import { discoverDshSelfCheckRoots } from './feed/dsh-discovery.js';
@@ -153,6 +153,7 @@ async function main() {
             : undefined,
         });
         config.agentHost = agent;
+        if (agent === 'dsh') config.dshProfile = result.profile;
         config.agentHosts = appendAgentHost(config.agentHosts, agent);
         saveConfig(config);
         printInstallResult(result);
@@ -282,8 +283,21 @@ async function main() {
       console.log(`Protection level: ${config.level}`);
       console.log(`Cloud URL: ${config.cloudUrl || 'not configured'}`);
       printCloudAuthStatus(config);
-      console.log(`Agent host: ${config.agentHost || 'not configured'}`);
+      const hasDsh = config.agentHost === 'dsh' || config.agentHosts?.includes('dsh') === true;
+      const dshVerified = hasDsh && config.dshProfile
+        ? isDshProfileBundleInstalled(config.dshProfile)
+        : false;
+      const hostLabel = config.agentHost === 'dsh' && !dshVerified
+        ? 'dsh (integration not verified)'
+        : config.agentHost || 'not configured';
+      console.log(`Agent host: ${hostLabel}`);
       console.log(`Agent hosts: ${config.agentHosts?.join(', ') || 'not configured'}`);
+      if (hasDsh) {
+        console.log(dshVerified
+          ? `DSH integration: verified in profile ${config.dshProfile}`
+          : `DSH integration: not verified${config.dshProfile ? ` in profile ${config.dshProfile}` : ' (profile unknown)'}. Run agentguard init --agent dsh --profile <name> to repair.`);
+        if (!dshVerified) process.exitCode = 1;
+      }
       console.log(`Policy cache: ${statusPath(config.policyCachePath, paths.home)}`);
       console.log(`Audit log: ${statusPath(config.auditPath, paths.home)}`);
       console.log(`Privacy enhancement: ${describePrivacyMode(config)}`);
@@ -1269,6 +1283,8 @@ function initAutoAgents(config: AgentGuardConfig, force: boolean, profile?: stri
 
   if (installed.length > 0) {
     config.agentHosts = installed.map((result) => result.agent);
+    const installedDsh = installed.find((result) => result.agent === 'dsh');
+    if (installedDsh) config.dshProfile = installedDsh.profile;
     config.agentHost = installed[0].agent;
     saveConfig(config);
   }

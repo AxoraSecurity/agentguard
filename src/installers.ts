@@ -8,6 +8,8 @@ export type AgentInstaller = 'claude-code' | 'codex' | 'openclaw' | 'hermes' | '
 export interface InstallResult {
   agent: AgentInstaller;
   files: string[];
+  /** The DSH profile that was installed and verified, if applicable. */
+  profile?: string;
   messages?: string[];
 }
 
@@ -95,17 +97,22 @@ function installDsh(root: string, selectedProfile?: string): InstallResult {
     throw new Error(`DSH plugin installation failed with exit code ${result.status ?? 1}.`);
   }
   const manifestPath = join(dshProfilesRoot(), profile, 'package.json');
-  let verified = false;
-  try {
-    const pkg = JSON.parse(readFileSync(manifestPath, 'utf8')) as { dsh?: { profile?: { bundles?: unknown } } };
-    verified = Array.isArray(pkg.dsh?.profile?.bundles) && pkg.dsh.profile.bundles.includes(DSH_BUNDLE);
-  } catch {
-    // Missing or malformed manifest means installation cannot be confirmed.
-  }
-  if (!verified) {
+  if (!isDshProfileBundleInstalled(profile)) {
     throw new Error(`DSH reported success but ${manifestPath} does not list ${DSH_BUNDLE} in dsh.profile.bundles. Retry: dsh plugin --profile ${profile} add --allow-build=${DSH_BUNDLE} ${DSH_BUNDLE}`);
   }
-  return { agent: 'dsh', files: [], messages: [`Installed dsh integration in profile ${profile}.`] };
+  return { agent: 'dsh', files: [], profile, messages: [`Installed dsh integration in profile ${profile}.`] };
+}
+
+/** Check the selected profile's manifest, not the mere success of the dsh command. */
+export function isDshProfileBundleInstalled(profile: string): boolean {
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(profile)) return false;
+  try {
+    const manifestPath = join(dshProfilesRoot(), profile, 'package.json');
+    const pkg = JSON.parse(readFileSync(manifestPath, 'utf8')) as { dsh?: { profile?: { bundles?: unknown } } };
+    return Array.isArray(pkg.dsh?.profile?.bundles) && pkg.dsh.profile.bundles.includes(DSH_BUNDLE);
+  } catch {
+    return false;
+  }
 }
 
 function installClaudeCode(root: string, force: boolean, protectedPaths: string[]): InstallResult {
