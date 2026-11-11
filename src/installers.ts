@@ -20,6 +20,8 @@ export function installAgentTemplates(agent: AgentInstaller, options: {
   cwd?: string;
   force?: boolean;
   shellHooks?: boolean;
+  /** DSH profile selected by --profile (takes precedence over AGENTGUARD_DSH_PROFILE). */
+  profile?: string;
   /** Exact paths explicitly selected for Claude Code @file Read deny compensation. */
   protectedPaths?: string[];
 } = {}): InstallResult {
@@ -29,14 +31,53 @@ export function installAgentTemplates(agent: AgentInstaller, options: {
   if (agent === 'openclaw') return installOpenClaw(options.cwd, Boolean(options.force));
   if (agent === 'hermes') return installHermes(options.cwd, Boolean(options.force), { shellHooks: Boolean(options.shellHooks) });
   if (agent === 'qclaw') return installQClaw(root, Boolean(options.force));
-  if (agent === 'dsh') return installDsh(root);
+  if (agent === 'dsh') return installDsh(root, options.profile);
   throw new Error(`Unsupported agent installer: ${agent}`);
 }
 
-function installDsh(root: string): InstallResult {
+const DSH_BUNDLE = '@axorasec/agentguard';
+
+export function dshProfilesRoot(): string {
+  const configuredHome = process.env.DSH_HOME?.trim();
+  const home = !configuredHome
+    ? join(homedir(), '.dsh')
+    : configuredHome === '~'
+      ? homedir()
+      : /^~[\\/]/.test(configuredHome)
+        ? join(homedir(), configuredHome.slice(2))
+        : resolve(configuredHome);
+  return join(home, 'profiles');
+}
+
+export function installedDshProfiles(): string[] {
+  const profilesRoot = dshProfilesRoot();
+  if (!existsSync(profilesRoot)) return [];
+  return readdirSync(profilesRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && existsSync(join(profilesRoot, entry.name, 'package.json')))
+    .map((entry) => entry.name).sort();
+}
+
+function resolveDshProfile(explicit?: string): string {
+  const selected = explicit ?? process.env.AGENTGUARD_DSH_PROFILE;
+  if (selected !== undefined) {
+    // A profile is a single directory name, never a path or option to pass to dsh.
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(selected)) {
+      throw new Error('Invalid DSH profile name. Use a single profile name (letters, numbers, _ or -).');
+    }
+    return selected;
+  }
+  const profiles = installedDshProfiles();
+  if (profiles.length === 1) return profiles[0];
+  throw new Error(profiles.length
+    ? `Multiple DSH profiles found (${profiles.join(', ')}). Choose one with --profile <name> or AGENTGUARD_DSH_PROFILE.`
+    : 'No DSH profile found. Choose one with --profile <name> or AGENTGUARD_DSH_PROFILE.');
+}
+
+function installDsh(root: string, selectedProfile?: string): InstallResult {
+  const profile = resolveDshProfile(selectedProfile);
   const args = [
-    'plugin', '--profile', 'web', 'add',
-    '--allow-build=@axorasec/agentguard', '@axorasec/agentguard',
+    'plugin', '--profile', profile, 'add',
+    `--allow-build=${DSH_BUNDLE}`, DSH_BUNDLE,
   ];
   const result = spawnSync('dsh', args, {
     cwd: root,
@@ -46,14 +87,25 @@ function installDsh(root: string): InstallResult {
   if (result.error) {
     const code = (result.error as NodeJS.ErrnoException).code;
     if (code === 'ENOENT') {
-      throw new Error('DSH CLI was not found on PATH. Install or run DSH before initializing AgentGuard for DSH.');
+      throw new Error(`DSH CLI was not found on PATH. If DSH Desktop is installed, link its CLI to PATH, then rerun agentguard init --agent dsh --profile ${profile}.`);
     }
     throw result.error;
   }
   if (result.status !== 0) {
     throw new Error(`DSH plugin installation failed with exit code ${result.status ?? 1}.`);
   }
-  return { agent: 'dsh', files: [] };
+  const manifestPath = join(dshProfilesRoot(), profile, 'package.json');
+  let verified = false;
+  try {
+    const pkg = JSON.parse(readFileSync(manifestPath, 'utf8')) as { dsh?: { profile?: { bundles?: unknown } } };
+    verified = Array.isArray(pkg.dsh?.profile?.bundles) && pkg.dsh.profile.bundles.includes(DSH_BUNDLE);
+  } catch {
+    // Missing or malformed manifest means installation cannot be confirmed.
+  }
+  if (!verified) {
+    throw new Error(`DSH reported success but ${manifestPath} does not list ${DSH_BUNDLE} in dsh.profile.bundles. Retry: dsh plugin --profile ${profile} add --allow-build=${DSH_BUNDLE} ${DSH_BUNDLE}`);
+  }
+  return { agent: 'dsh', files: [], messages: [`Installed dsh integration in profile ${profile}.`] };
 }
 
 function installClaudeCode(root: string, force: boolean, protectedPaths: string[]): InstallResult {

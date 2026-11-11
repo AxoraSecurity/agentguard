@@ -15,7 +15,15 @@ describe('init CLI', () => {
     writeFileSync(dsh, [
       '#!/usr/bin/env node',
       'const fs = require("node:fs");',
-      'fs.writeFileSync(process.env.DSH_CALL_LOG, JSON.stringify(process.argv.slice(2)));',
+      'const path = require("node:path");',
+      'const args = process.argv.slice(2);',
+      'fs.writeFileSync(process.env.DSH_CALL_LOG, JSON.stringify(args));',
+      'if (!process.env.DSH_FAKE_NO_MANIFEST) {',
+      '  const home = process.env.DSH_HOME.startsWith("~/") ? path.join(process.env.HOME, process.env.DSH_HOME.slice(2)) : process.env.DSH_HOME;',
+      '  const manifest = path.join(home, "profiles", args[2], "package.json");',
+      '  fs.mkdirSync(path.dirname(manifest), { recursive: true });',
+      '  fs.writeFileSync(manifest, JSON.stringify({ dsh: { profile: { bundles: ["@axorasec/agentguard"] } } }));',
+      '}',
       'process.stdout.write("profile bundle installed\\n");',
       `process.exit(${exitCode});`,
       '',
@@ -209,12 +217,13 @@ describe('init CLI', () => {
     const cliPath = resolve('dist', 'cli.js');
     installFakeDsh(bin, callLog);
 
-    const { stdout } = await execFileAsync(process.execPath, [cliPath, 'init', '--agent', 'dsh'], {
+    const { stdout } = await execFileAsync(process.execPath, [cliPath, 'init', '--agent', 'dsh', '--profile', 'web'], {
       cwd,
       env: {
         ...process.env,
         AGENTGUARD_HOME: home,
         DSH_CALL_LOG: callLog,
+        DSH_HOME: join(home, 'dsh'),
         PATH: `${bin}:${process.env.PATH || ''}`,
       },
     });
@@ -233,6 +242,121 @@ describe('init CLI', () => {
     assert.match(stdout, /Restart DSH/);
   });
 
+  it('selects the only installed desktop profile without creating web', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'agentguard-init-desktop-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'agentguard-init-desktop-cwd-'));
+    const dshHome = join(home, 'dsh');
+    const bin = join(cwd, 'bin');
+    const callLog = join(cwd, 'dsh-call.json');
+    const cliPath = resolve('dist', 'cli.js');
+    mkdirSync(join(dshHome, 'profiles', 'desktop'), { recursive: true });
+    writeFileSync(join(dshHome, 'profiles', 'desktop', 'package.json'), '{}');
+    installFakeDsh(bin, callLog);
+
+    const { stdout } = await execFileAsync(process.execPath, [cliPath, 'init'], {
+      cwd,
+      env: { ...process.env, AGENTGUARD_HOME: home, DSH_HOME: dshHome, DSH_CALL_LOG: callLog, AGENTGUARD_DSH_PROFILE: undefined,
+        PATH: `${bin}:${process.env.PATH || ''}` },
+    });
+    assert.match(stdout, /Installed dsh integration in profile desktop/);
+    assert.equal(JSON.parse(readFileSync(callLog, 'utf8'))[2], 'desktop');
+    assert.equal(existsSync(join(dshHome, 'profiles', 'web')), false);
+  });
+
+  it('rejects ambiguous profiles instead of silently installing to web', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'agentguard-init-ambiguous-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'agentguard-init-ambiguous-cwd-'));
+    const dshHome = join(home, 'dsh');
+    const cliPath = resolve('dist', 'cli.js');
+    for (const name of ['web', 'desktop']) {
+      mkdirSync(join(dshHome, 'profiles', name), { recursive: true });
+      writeFileSync(join(dshHome, 'profiles', name, 'package.json'), '{}');
+    }
+    await assert.rejects(execFileAsync(process.execPath, [cliPath, 'init', '--agent', 'dsh'], {
+      cwd, env: { ...process.env, AGENTGUARD_HOME: home, DSH_HOME: dshHome, AGENTGUARD_DSH_PROFILE: '' },
+    }), /Invalid DSH profile name/);
+    await assert.rejects(execFileAsync(process.execPath, [cliPath, 'init', '--agent', 'dsh'], {
+      cwd, env: { ...process.env, AGENTGUARD_HOME: home, DSH_HOME: dshHome, AGENTGUARD_DSH_PROFILE: undefined },
+    }), /Multiple DSH profiles found \(desktop, web\)/);
+    const config = JSON.parse(readFileSync(join(home, 'config.json'), 'utf8')) as { agentHost?: string };
+    assert.equal(config.agentHost, undefined);
+  });
+
+  it('uses AGENTGUARD_DSH_PROFILE to select desktop among multiple profiles', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'agentguard-init-env-profile-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'agentguard-init-env-profile-cwd-'));
+    const dshHome = join(home, 'dsh');
+    const bin = join(cwd, 'bin');
+    const callLog = join(cwd, 'dsh-call.json');
+    for (const name of ['desktop', 'web']) {
+      mkdirSync(join(dshHome, 'profiles', name), { recursive: true });
+      writeFileSync(join(dshHome, 'profiles', name, 'package.json'), '{}');
+    }
+    installFakeDsh(bin, callLog);
+    const { stdout } = await execFileAsync(process.execPath, [resolve('dist', 'cli.js'), 'init'], {
+      cwd, env: { ...process.env, AGENTGUARD_HOME: home, DSH_HOME: dshHome, DSH_CALL_LOG: callLog,
+        AGENTGUARD_DSH_PROFILE: 'desktop', PATH: `${bin}:${process.env.PATH || ''}` },
+    });
+    assert.match(stdout, /profile desktop/);
+    assert.equal(JSON.parse(readFileSync(callLog, 'utf8'))[2], 'desktop');
+    assert.equal(readFileSync(join(dshHome, 'profiles', 'web', 'package.json'), 'utf8'), '{}');
+  });
+
+  it('returns nonzero in auto mode if multiple DSH profiles are ambiguous', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'agentguard-init-auto-ambiguous-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'agentguard-init-auto-ambiguous-cwd-'));
+    const dshHome = join(home, 'dsh');
+    for (const name of ['desktop', 'web']) {
+      mkdirSync(join(dshHome, 'profiles', name), { recursive: true });
+      writeFileSync(join(dshHome, 'profiles', name, 'package.json'), '{}');
+    }
+    await assert.rejects(execFileAsync(process.execPath, [resolve('dist', 'cli.js'), 'init'], {
+      cwd, env: { ...process.env, AGENTGUARD_HOME: home, DSH_HOME: dshHome, AGENTGUARD_DSH_PROFILE: undefined },
+    }), /Multiple DSH profiles found/);
+  });
+
+  it('prefers --profile over AGENTGUARD_DSH_PROFILE for desktop', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'agentguard-init-profile-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'agentguard-init-profile-cwd-'));
+    const dshHome = join(home, 'dsh');
+    const bin = join(cwd, 'bin');
+    const callLog = join(cwd, 'dsh-call.json');
+    installFakeDsh(bin, callLog);
+    const { stdout } = await execFileAsync(process.execPath, [resolve('dist', 'cli.js'), 'init', '--agent', 'dsh', '--profile', 'desktop'], {
+      cwd, env: { ...process.env, AGENTGUARD_HOME: home, DSH_HOME: dshHome, DSH_CALL_LOG: callLog,
+        AGENTGUARD_DSH_PROFILE: 'web', PATH: `${bin}:${process.env.PATH || ''}` },
+    });
+    assert.match(stdout, /profile desktop/);
+    assert.equal(JSON.parse(readFileSync(callLog, 'utf8'))[2], 'desktop');
+  });
+
+  it('fails if DSH reports success without installing the selected bundle', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'agentguard-init-unverified-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'agentguard-init-unverified-cwd-'));
+    const dshHome = join(home, 'dsh');
+    const bin = join(cwd, 'bin');
+    const callLog = join(cwd, 'dsh-call.json');
+    installFakeDsh(bin, callLog);
+    await assert.rejects(execFileAsync(process.execPath, [resolve('dist', 'cli.js'), 'init', '--agent', 'dsh', '--profile', 'desktop'], {
+      cwd, env: { ...process.env, AGENTGUARD_HOME: home, DSH_HOME: dshHome, DSH_CALL_LOG: callLog,
+        DSH_FAKE_NO_MANIFEST: '1', PATH: `${bin}:${process.env.PATH || ''}` },
+    }), /does not list @axorasec\/agentguard/);
+    const config = JSON.parse(readFileSync(join(home, 'config.json'), 'utf8')) as { agentHost?: string };
+    assert.equal(config.agentHost, undefined);
+  });
+
+  it('reports missing DSH CLI as a failure in auto mode when desktop is installed', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'agentguard-init-no-cli-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'agentguard-init-no-cli-cwd-'));
+    const dshHome = join(home, 'dsh');
+    mkdirSync(join(dshHome, 'profiles', 'desktop'), { recursive: true });
+    writeFileSync(join(dshHome, 'profiles', 'desktop', 'package.json'), '{}');
+    await assert.rejects(execFileAsync(process.execPath, [resolve('dist', 'cli.js'), 'init'], {
+      cwd, env: { ...process.env, AGENTGUARD_HOME: home, DSH_HOME: dshHome,
+        PATH: '/usr/bin:/bin', AGENTGUARD_DSH_PROFILE: undefined },
+    }), /DSH CLI was not found on PATH/);
+  });
+
   it('does not persist DSH as initialized when native bundle installation fails', async () => {
     const home = mkdtempSync(join(tmpdir(), 'agentguard-init-dsh-failure-home-'));
     const cwd = mkdtempSync(join(tmpdir(), 'agentguard-init-dsh-failure-cwd-'));
@@ -242,12 +366,13 @@ describe('init CLI', () => {
     installFakeDsh(bin, callLog, 17);
 
     await assert.rejects(
-      execFileAsync(process.execPath, [cliPath, 'init', '--agent', 'dsh'], {
+      execFileAsync(process.execPath, [cliPath, 'init', '--agent', 'dsh', '--profile', 'web'], {
         cwd,
         env: {
           ...process.env,
           AGENTGUARD_HOME: home,
           DSH_CALL_LOG: callLog,
+        DSH_HOME: join(home, 'dsh'),
           PATH: `${bin}:${process.env.PATH || ''}`,
         },
       }),
@@ -422,7 +547,9 @@ describe('init CLI', () => {
         ...process.env,
         AGENTGUARD_HOME: home,
         DSH_CALL_LOG: callLog,
+        DSH_HOME: join(home, 'dsh'),
         DSH_SHELL: '1',
+        AGENTGUARD_DSH_PROFILE: 'web',
         PATH: `${bin}:${process.env.PATH || ''}`,
       },
     });
@@ -454,7 +581,9 @@ describe('init CLI', () => {
         ...process.env,
         AGENTGUARD_HOME: home,
         DSH_CALL_LOG: callLog,
+        DSH_HOME: join(home, 'dsh'),
         DSH_SHELL: '1',
+        AGENTGUARD_DSH_PROFILE: 'web',
         PATH: `${bin}:${process.env.PATH || ''}`,
       },
     });

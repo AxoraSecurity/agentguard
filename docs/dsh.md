@@ -10,15 +10,15 @@ AgentGuard can be loaded into a DSH profile as a native tool plugin. From an npm
 
 ```bash
 npm install -g @axorasec/agentguard
-agentguard init --agent dsh
+agentguard init --agent dsh --profile desktop  # DSH Desktop
 ```
 
-When invoked inside DSH, bare `agentguard init` auto-detects DSH and performs the same installation. Both commands install the packaged native bundle into DSH's default `web` profile. Restart DSH after initialization.
+Bare `agentguard init` detects DSH when a profile exists or DSH is managing the shell. It selects the sole installed profile automatically. If multiple profiles exist, choose the one used by your DSH host with `--profile <name>` or `AGENTGUARD_DSH_PROFILE=<name>`; `--profile` wins. Do not assume the desktop app uses `web`. If no profile exists, specify one explicitly. Initialization fails if the DSH CLI is missing from PATH or the selected profile's `package.json` does not confirm the bundle in `dsh.profile.bundles`. Restart the selected profile after initialization. An external bootstrap script must pass through the selected profile and must not set `AGENTGUARD_DSH_PROFILE=web` as an implicit default.
 
-The equivalent low-level DSH command is:
+The equivalent low-level DSH command (here for `desktop`) is:
 
 ```bash
-dsh plugin --profile web add --allow-build=@axorasec/agentguard @axorasec/agentguard
+dsh plugin --profile desktop add --allow-build=@axorasec/agentguard @axorasec/agentguard
 ```
 
 The scoped `--allow-build` approval lets pnpm run AgentGuard's reviewed npm
