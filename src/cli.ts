@@ -34,7 +34,7 @@ import { formatProtectResult, protectAction, exitCodeForDecision } from './runti
 import { approvePendingApproval, listPendingApprovals } from './runtime/approvals.js';
 import { getDefaultEffectiveRuntimePolicy, loadCachedPolicy, saveCachedPolicy } from './runtime/policy.js';
 import type { RuntimeActionType, RuntimeAgentHost } from './runtime/types.js';
-import { installAgentTemplates, type AgentInstaller, type InstallResult } from './installers.js';
+import { installAgentTemplates, installedDshProfiles, isDshProfileBundleInstalled, type AgentInstaller, type InstallResult } from './installers.js';
 import { packageVersion } from './version.js';
 import { runSelfCheckForAdvisory } from './feed/selfcheck.js';
 import { discoverDshSelfCheckRoots } from './feed/dsh-discovery.js';
@@ -92,6 +92,7 @@ async function main() {
     .description('Create ~/.agentguard/config.json and local runtime paths')
     .option('--level <level>', 'Protection level: strict | balanced | permissive')
     .option('--agent <agent>', 'Install integration for auto, claude-code, codex, openclaw, hermes, qclaw, or dsh (default: auto)')
+    .option('--profile <name>', 'DSH profile (overrides AGENTGUARD_DSH_PROFILE)')
     .option('--cloud <url>', 'AgentGuard Cloud URL to store in local config')
     .option('--shell-hooks', 'For Hermes: install legacy shell hooks instead of the native plugin')
     .option('--force', 'Overwrite existing hook/template files')
@@ -118,7 +119,7 @@ async function main() {
           ? 'auto'
           : String(options.agent).trim().toLowerCase();
         if (normalizedAgent === 'auto') {
-          const results = initAutoAgents(config, forceTemplates);
+          const results = initAutoAgents(config, forceTemplates, options.profile);
           if (results.detected.length === 0) {
             console.log('No supported agent installation found. Looked for DSH and .claude, .openclaw, .hermes, .qclaw, and .codex.');
           } else if (results.installed.length === 0) {
@@ -131,6 +132,7 @@ async function main() {
           for (const failure of results.failed) {
             console.error(`! Failed to initialize ${failure.agent}: ${failure.error}`);
           }
+          if (results.failed.some((failure) => failure.agent === 'dsh')) process.exitCode = 1;
           printPrivacyEnhancementHint(config);
           return;
         }
@@ -138,15 +140,20 @@ async function main() {
           throw new Error('Invalid agent. Use auto, claude-code, codex, openclaw, hermes, qclaw, or dsh.');
         }
         const agent = normalizedAgent as AgentInstaller;
+        if (options.profile !== undefined && agent !== 'dsh') {
+          throw new Error('--profile is only supported with --agent dsh or --agent auto.');
+        }
         const shellHooks = Boolean(options.shellHooks);
         const result = installAgentTemplates(agent, {
           force: forceTemplates,
           shellHooks,
+          profile: options.profile,
           protectedPaths: agent === 'claude-code'
             ? loadCachedPolicy(config.policyCachePath)?.protectedPaths
             : undefined,
         });
         config.agentHost = agent;
+        if (agent === 'dsh') config.dshProfile = result.profile;
         config.agentHosts = appendAgentHost(config.agentHosts, agent);
         saveConfig(config);
         printInstallResult(result);
@@ -276,8 +283,21 @@ async function main() {
       console.log(`Protection level: ${config.level}`);
       console.log(`Cloud URL: ${config.cloudUrl || 'not configured'}`);
       printCloudAuthStatus(config);
-      console.log(`Agent host: ${config.agentHost || 'not configured'}`);
+      const hasDsh = config.agentHost === 'dsh' || config.agentHosts?.includes('dsh') === true;
+      const dshVerified = hasDsh && config.dshProfile
+        ? isDshProfileBundleInstalled(config.dshProfile)
+        : false;
+      const hostLabel = config.agentHost === 'dsh' && !dshVerified
+        ? 'dsh (integration not verified)'
+        : config.agentHost || 'not configured';
+      console.log(`Agent host: ${hostLabel}`);
       console.log(`Agent hosts: ${config.agentHosts?.join(', ') || 'not configured'}`);
+      if (hasDsh) {
+        console.log(dshVerified
+          ? `DSH integration: verified in profile ${config.dshProfile}`
+          : `DSH integration: not verified${config.dshProfile ? ` in profile ${config.dshProfile}` : ' (profile unknown)'}. Run agentguard init --agent dsh --profile <name> to repair.`);
+        if (!dshVerified) process.exitCode = 1;
+      }
       console.log(`Policy cache: ${statusPath(config.policyCachePath, paths.home)}`);
       console.log(`Audit log: ${statusPath(config.auditPath, paths.home)}`);
       console.log(`Privacy enhancement: ${describePrivacyMode(config)}`);
@@ -1225,7 +1245,7 @@ function validateCronTarget(value: unknown): CronBackend {
   throw new Error('Invalid cron target. Use auto, openclaw, qclaw, hermes, system, or windows.');
 }
 
-function initAutoAgents(config: AgentGuardConfig, force: boolean): {
+function initAutoAgents(config: AgentGuardConfig, force: boolean, profile?: string): {
   installed: InstallResult[];
   failed: Array<{ agent: AgentInstaller; error: string }>;
   detected: AgentInstaller[];
@@ -1236,7 +1256,9 @@ function initAutoAgents(config: AgentGuardConfig, force: boolean): {
     .filter(({ dir }) => existsSync(join(process.cwd(), dir)))
     .map(({ agent }) => agent);
   const isDshManagedShell = detectDshManagedShell();
-  const dshAgents: AgentInstaller[] = isDshManagedShell || detectInstalledDshWebProfile() ? ['dsh'] : [];
+  const dshDetected = isDshManagedShell || installedDshProfiles().length > 0
+    || process.env.AGENTGUARD_DSH_PROFILE !== undefined || profile !== undefined;
+  const dshAgents: AgentInstaller[] = dshDetected ? ['dsh'] : [];
   const detectedAgents: AgentInstaller[] = isDshManagedShell
     ? [...dshAgents, ...directoryAgents]
     : [...directoryAgents, ...dshAgents];
@@ -1246,6 +1268,7 @@ function initAutoAgents(config: AgentGuardConfig, force: boolean): {
       installed.push(installAgentTemplates(agent, {
         cwd: process.cwd(),
         force,
+        profile,
         protectedPaths: agent === 'claude-code'
           ? loadCachedPolicy(config.policyCachePath)?.protectedPaths
           : undefined,
@@ -1260,6 +1283,8 @@ function initAutoAgents(config: AgentGuardConfig, force: boolean): {
 
   if (installed.length > 0) {
     config.agentHosts = installed.map((result) => result.agent);
+    const installedDsh = installed.find((result) => result.agent === 'dsh');
+    if (installedDsh) config.dshProfile = installedDsh.profile;
     config.agentHost = installed[0].agent;
     saveConfig(config);
   }
@@ -1269,7 +1294,7 @@ function initAutoAgents(config: AgentGuardConfig, force: boolean): {
 
 function printInstallResult(result: InstallResult): void {
   if (result.agent === 'dsh') {
-    console.log('Installed dsh integration in profile web.');
+    for (const message of result.messages || []) console.log(message);
     console.log('Restart DSH to activate AgentGuard in that profile.');
     return;
   }
@@ -2792,17 +2817,6 @@ function detectDshManagedShell(): boolean {
   return process.env.DSH_SHELL === '1';
 }
 
-function detectInstalledDshWebProfile(): boolean {
-  const configuredHome = process.env.DSH_HOME?.trim();
-  const dshHome = configuredHome
-    ? configuredHome === '~'
-      ? homedir()
-      : /^~[\\/]/.test(configuredHome)
-        ? join(homedir(), configuredHome.slice(2))
-        : resolve(configuredHome)
-    : join(homedir(), '.dsh');
-  return existsSync(join(dshHome, 'profiles', 'web', 'package.json'));
-}
 
 function withDetectedAgentHost(config: AgentGuardConfig, agentHost: AgentGuardAgentHost): AgentGuardConfig {
   const next: AgentGuardConfig = {
