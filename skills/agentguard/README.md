@@ -1,11 +1,11 @@
 # Axora AgentGuard
 
-AI Agent Security Guard — protect your AI agents from dangerous commands, data leaks, and malicious skills.
+Local guard for AI agents.
 
 ## Features
 
-- **Code Scanning** — 24 detection rules covering shell injection, credential leaks, prompt injection, Web3 exploits, and more
-- **Action Evaluation** — Real-time allow/deny/confirm decisions for runtime actions (network, exec, file, Web3)
+- **AgentGuard DeepScan** — Checks code and `SKILL.md` before you install a skill, plugin, or MCP package, and returns a risk level, tags, and a summary.
+- **Action evaluation** — Before a supported action runs, returns `allow`, `confirm`, or `deny`. A `confirm` decision requires approval; `deny` blocks the action.
 - **Trust Registry** — Manage skill trust levels with capability-based access control
 - **Security Patrol** — Automated daily security checks for OpenClaw environments
 - **Agent Health Checkup** — Full security posture assessment with visual HTML report and shareable lobster mascot
@@ -19,7 +19,7 @@ AI Agent Security Guard — protect your AI agents from dangerous commands, data
 /agentguard patrol [run|setup|status] — Daily security patrol
 /agentguard trust <subcommand>   — Manage skill trust levels
 /agentguard report               — View security event audit log
-/agentguard config <level>       — Set protection level (strict/balanced/permissive)
+/agentguard config <level>       — Set protection level: Observe (`permissive` in the CLI), Balanced (`balanced`, default), or Strict (`strict`)
 /agentguard checkup              — Run agent health checkup with visual HTML report
 /agentguard hermes-hooks         — Configure Hermes Agent shell hooks
 ```
@@ -44,15 +44,14 @@ Run a full security health check on your AI agent and get a visual report in the
 /agentguard checkup
 ```
 
-Evaluates 4 dimensions (5 if Web3 usage is detected):
+Evaluates these dimensions:
 
 | Dimension | What's checked |
 |-----------|---------------|
-| **Skill & Code Safety** | Scan all installed skills with 24 detection rules |
+| **Skill & Code Safety** | AgentGuard DeepScan of installed skills |
 | **Credential & Secrets** | File permissions on `~/.ssh/`, `~/.gnupg/`, leaked keys and API tokens |
 | **Network & System** | Dangerous open ports, suspicious cron jobs, sensitive env vars |
 | **Runtime Protection** | Security hooks, audit log, whether skills have been scanned |
-| **Web3 Safety** | Wallet-draining patterns, unlimited approvals, GoPlus API config (only if Web3 detected) |
 
 Scores are combined into a composite 0–100 health score with a tier:
 
@@ -68,7 +67,6 @@ The report opens automatically in your browser. It includes a shareable image yo
 ## Requirements
 
 - Node.js 18+
-- Optional: GoPlus API credentials for enhanced Web3 transaction simulation
 
 ## Author
 

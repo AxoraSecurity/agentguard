@@ -6,12 +6,12 @@
   },
   "metadata": {
     "description": "Axora AgentGuard — AI agent security framework",
-    "version": "1.2.4"
+    "version": "1.2.6"
   },
   "plugins": [
     {
       "name": "agentguard",
-      "description": "AI agent security guard. Blocks dangerous commands, prevents data leaks, protects secrets.",
+      "description": "Local guard for AI agents: AgentGuard DeepScan, runtime evaluation, patrol, checkup, and a local audit log.",
       "source": "./",
       "strict": true
     }

@@ -1,7 +1,7 @@
 {
   "name": "@axorasec/agentguard",
   "version": "1.2.6",
-  "description": "Axora AgentGuard — Security guard for AI agents. Blocks dangerous commands, prevents data leaks, protects secrets. 20 detection rules, runtime action evaluation, trust registry.",
+  "description": "Axora AgentGuard. Local guard for AI agents: AgentGuard DeepScan, runtime evaluation, patrol, checkup, and a local audit log.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "openclaw": {
@@ -48,7 +48,6 @@
     "mcp",
     "security",
     "ai-agent",
-    "web3",
     "axora",
     "claude-code",
     "codex",
@@ -70,7 +69,6 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
-    "axios": "1.14.0",
     "commander": "12.1.0",
     "croner": "10.0.1",
     "glob": "13.0.6",
@@ -91,6 +89,7 @@
     "dist",
     "!dist/tests",
     "docs",
+    "assets/brand",
     "dsh.cordis.patch.yml",
     "examples/openclaw-docker",
     "README.md",

@@ -12,7 +12,7 @@ Brief description of the changes.
 ## Testing
 
 - [ ] `npm run build` passes
-- [ ] `npm test` passes (32 tests)
+- [ ] `npm test` passes
 - [ ] Manually tested the change
 
 ## Related Issues

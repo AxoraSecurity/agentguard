@@ -22,7 +22,7 @@ export function isVisiblePublicSearchResult(value: unknown): boolean {
     typeof record[key] === 'string' || Array.isArray(record[key]));
 }
 
-// A plain `token` field is often the name of a cryptocurrency, not a credential.
+// A plain `token` field may name a public asset rather than a credential.
 const SENSITIVE_CREDENTIAL_FIELD = /^(?:api[_-]?key|access[_-]?(?:key|token)|authorization|bearer|password|passwd|secret(?:[_-]?key)?|private[_-]?key|client[_-]?secret)$/i;
 // Only these *leaf values* in verified search results can be ambiguous numeric
 // metadata. A parent field never exempts all of its descendants.

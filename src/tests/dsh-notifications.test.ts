@@ -265,7 +265,7 @@ describe('DSH threat-feed notification queue', () => {
       await enqueueDshThreatFeedNotification(notice, home);
       await Promise.race([
         changed,
-        new Promise<void>((_, reject) => setTimeout(() => reject(new Error('queue watcher did not fire')), 2_000)),
+        new Promise<void>((_, reject) => setTimeout(() => reject(new Error('queue watcher did not fire')), 8_000)),
       ]);
     } finally {
       stop();

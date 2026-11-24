@@ -34,6 +34,8 @@ agentguard-mcp
 - `registry_revoke`
 - `registry_list`
 - `action_scanner_decide`
-- `action_scanner_simulate_web3`
 
-For live action blocking, prefer `agentguard protect` hooks. MCP is best for agent-invoked scans, trust registry operations, and Web3 simulation.
+The action tool returns `decision` as `allow`, `confirm`, or `deny`.
+`confirm` requires approval, and `deny` blocks the action.
+
+For live action blocking, prefer `agentguard protect` hooks. MCP is for scans, trust records, and action decisions.

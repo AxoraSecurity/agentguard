@@ -302,7 +302,6 @@ env | grep -iE 'API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE|CREDENTIAL' | awk -F= '{pr
 | Check | Command | Expected |
 |-------|---------|----------|
 | AgentGuard protection level | Read `~/.agentguard/config.json` | Not `permissive` for production |
-| GoPlus API configured | Check `GOPLUS_API_KEY` exists | Set if Web3 features used |
 | Config baseline hash | `sha256sum -c $OC/.config-baseline.sha256` | All OK (if baseline exists) |
 
 ### Severity
@@ -340,7 +339,7 @@ node scripts/trust-cli.ts list
 
 - Total trust records
 - Distribution: trusted / restricted / untrusted / revoked
-- Skills with Web3 capabilities enabled
+- Skills with command execution and broad network allowlists
 
 ---
 
