@@ -8,7 +8,7 @@ If you discover a security vulnerability in Axora AgentGuard, please report it r
 
 ### How to Report
 
-Use [GitHub private vulnerability reporting](https://github.com/AxoraSecurity/agentguard/security/advisories/new) to contact the maintainers privately. If that option is unavailable, ask the maintainers for a private reporting channel without sharing vulnerability details publicly.
+Use [GitHub private vulnerability reporting](https://github.com/AxoraSecurity/agentguard/security/advisories/new) to contact the maintainers privately. If that option is unavailable, email contact@axorasecurity.com without sharing vulnerability details in a public issue.
 
 Please include:
 - Description of the vulnerability

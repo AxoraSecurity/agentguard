@@ -771,7 +771,7 @@ const openClawEntry = Object.defineProperties(register, {
           type: 'string',
           enum: ['strict', 'balanced', 'permissive'],
           default: 'balanced',
-          description: 'Protection level: strict (block all risky), balanced (block dangerous, confirm risky), permissive (only block critical)',
+          description: 'Protection level: Strict (strict) blocks dangerous and suspicious findings; low-risk commands can still run. Balanced (balanced, default) blocks dangerous actions and requires approval for risky ones. Observe (permissive in the CLI) blocks critical threats only.',
         },
       },
     },

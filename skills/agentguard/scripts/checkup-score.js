@@ -40,12 +40,6 @@
  *     "hooks_installed":     false,
  *     "audit_log_exists":    false,
  *     "skills_ever_scanned": false
- *   },
- *   "web3": {
- *     "detected":                 false,
- *     "wallet_draining_found":    false,
- *     "unlimited_approval_found": false,
- *     "goplus_configured":        false
  *   }
  * }
  *
@@ -253,39 +247,11 @@ function scoreRuntimeProtection(runtime) {
 }
 
 // ---------------------------------------------------------------------------
-// Dimension 5: Web3 Safety (weight 15%, only if detected)
+// Dimension 5 is retained on the report schema and is always not applicable.
 // ---------------------------------------------------------------------------
 
-function scoreWeb3Safety(web3) {
-  if (!web3 || !web3.detected) {
-    return { score: null, na: true, findings: [] };
-  }
-
-  const findings = [];
-  let score = 0;
-
-  // No wallet-draining patterns (40 pts)
-  if (!web3.wallet_draining_found) {
-    score += 40;
-  } else {
-    findings.push({ severity: 'CRITICAL', text: 'Wallet-draining pattern detected in skill code' });
-  }
-
-  // No unlimited approvals (30 pts)
-  if (!web3.unlimited_approval_found) {
-    score += 30;
-  } else {
-    findings.push({ severity: 'HIGH', text: 'Unlimited approval pattern detected in skill code' });
-  }
-
-  // GoPlus or equivalent configured (30 pts)
-  if (web3.goplus_configured) {
-    score += 30;
-  } else {
-    findings.push({ severity: 'MEDIUM', text: 'No transaction security API — Web3 calls are unverified' });
-  }
-
-  return { score: Math.min(100, score), na: false, findings };
+function scoreWeb3Safety() {
+  return { score: null, na: true, findings: [] };
 }
 
 // ---------------------------------------------------------------------------
@@ -333,7 +299,7 @@ const dimensions = {
   credential_safety: scoreCredentialSafety(raw.credential_files, raw.dlp),
   network_exposure:  scoreNetworkExposure(raw.network),
   runtime_protection: scoreRuntimeProtection(raw.runtime),
-  web3_safety:       scoreWeb3Safety(raw.web3),
+  web3_safety:       scoreWeb3Safety(),
 };
 
 const composite_score = computeComposite(dimensions);

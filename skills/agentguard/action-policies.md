@@ -162,10 +162,9 @@ secret_exfil:
 
 exec_command: DENY (default, unless capability allows)
 
-web3:
-  unlimited_approval: CONFIRM
-  unknown_spender: CONFIRM
-  user_not_present: CONFIRM
+file:
+  sensitive_path: CONFIRM
+  path_traversal: DENY
 
 network:
   untrusted_domain: CONFIRM
@@ -194,63 +193,14 @@ network:
 }
 ```
 
-### trading_bot
-```json
-{
-  "network_allowlist": [
-    "api.binance.com", "api.bybit.com", "api.okx.com",
-    "api.coinbase.com", "*.dextools.io", "*.coingecko.com"
-  ],
-  "filesystem_allowlist": ["./config/**", "./logs/**"],
-  "exec": "deny",
-  "secrets_allowlist": ["*_API_KEY", "*_API_SECRET"],
-  "web3": {
-    "chains_allowlist": [1, 56, 137, 42161],
-    "rpc_allowlist": ["*"],
-    "tx_policy": "confirm_high_risk"
-  }
-}
-```
+### Custom secret allowlist
+Use custom capabilities when a skill may read approved secret names and nothing else:
 
-### defi
 ```json
 {
-  "network_allowlist": ["*"],
+  "network_allowlist": [],
   "filesystem_allowlist": [],
   "exec": "deny",
-  "secrets_allowlist": [],
-  "web3": {
-    "chains_allowlist": [1, 56, 137, 42161, 10, 8453, 43114],
-    "rpc_allowlist": ["*"],
-    "tx_policy": "confirm_high_risk"
-  }
+  "secrets_allowlist": ["SERVICE_API_KEY"]
 }
 ```
-
-## GoPlus Integration
-
-The `action-cli.ts decide` command integrates with the [GoPlus Security API](https://docs.gopluslabs.io/) for enhanced Web3 action evaluation. GoPlus provides three checks:
-
-| Check | Description | Triggers |
-|-------|-------------|----------|
-| **Phishing Site Detection** | Checks if the transaction origin URL is a known phishing site | `PHISHING_ORIGIN` → DENY (critical) |
-| **Address Security** | Checks if the target address is blacklisted, associated with phishing, stealing attacks, or honeypots | `MALICIOUS_ADDRESS` → DENY (critical), `HONEYPOT_RELATED` → flag (high) |
-| **Transaction Simulation** | Simulates the transaction to detect balance changes, approval changes, and risk indicators | `UNLIMITED_APPROVAL` → CONFIRM (high), `SIMULATION_FAILED` → flag (medium) |
-
-### Environment Variables
-
-```
-GOPLUS_API_KEY=your_key         # Required for simulation
-GOPLUS_API_SECRET=your_secret   # Required for simulation
-```
-
-Phishing site detection and address security checks work without API keys. Transaction simulation requires configured credentials.
-
-### Degradation Strategy
-
-When GoPlus is unavailable (no API keys, network errors, rate limiting):
-
-1. The `SIMULATION_UNAVAILABLE` or `SIMULATION_FAILED` risk tag is set
-2. Phishing and address checks that fail are silently skipped
-3. The decision falls back to **policy-based rules only** (capability model, webhook detection, secret scanning)
-4. For `web3_tx` and `web3_sign` without GoPlus, the skill should apply prompt-based rules and note the limitation in the output

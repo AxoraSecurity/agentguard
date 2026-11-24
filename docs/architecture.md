@@ -8,12 +8,11 @@ agentguard/
 │   ├── SKILL.md               # Skill entry point
 │   ├── scan-rules.md          # Detection rule reference
 │   ├── action-policies.md     # Action policy reference
-│   ├── web3-patterns.md       # Web3 patterns reference
 │   └── scripts/               # CLI tools (trust-cli, action-cli, guard-hook)
 ├── hooks/hooks.json           # Plugin hooks configuration
 ├── src/                       # TypeScript source
-│   ├── scanner/               # 20-rule static analysis engine
-│   ├── action/                # Runtime action evaluator + GoPlus integration
+│   ├── scanner/               # AgentGuard DeepScan
+│   ├── action/                # Runtime action evaluator
 │   ├── registry/              # Trust level management
 │   ├── policy/                # Default policies and presets
 │   └── tests/                 # Test suite
@@ -37,8 +36,8 @@ agentguard/
 │        ActionScanner Engine ◄────────────┘           │
 └──────────────────────────────────────────────────────┘
 ┌──────────────────────────────────────────────────────┐
-│  Layer 2: Deep Scan (skill — on demand)              │
-│  /agentguard scan   — 20-rule static analysis        │
+│  Layer 2: AgentGuard DeepScan (on demand)                │
+│  /agentguard scan   — static analysis                │
 │  /agentguard action — Runtime action evaluation      │
 │  /agentguard trust  — Skill trust management         │
 │  /agentguard report — Security event log             │
@@ -51,4 +50,4 @@ agentguard/
 npm install && npm run build && npm test
 ```
 
-32 tests across 4 suites: scanner rules, exec command detector, network request detector, and registry CRUD.
+The test suite covers scanner rules, the exec command detector, the network request detector, and registry CRUD.

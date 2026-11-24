@@ -7,7 +7,7 @@ Axora AgentGuard includes a trust registry for managing skill permissions.
 ### Attest (Register a Skill)
 
 ```
-/agentguard trust attest --id my-bot --source github.com/org/bot --version v1.0.0 --hash abc --trust-level restricted --preset trading_bot --reviewed-by admin
+/agentguard trust attest --id my-bot --source github.com/org/bot --version v1.0.0 --hash abc --trust-level restricted --preset read_only --reviewed-by admin
 ```
 
 ### Lookup
@@ -38,12 +38,10 @@ Axora AgentGuard includes a trust registry for managing skill permissions.
 
 ## Capability Presets
 
-| Preset | Network | Filesystem | Exec | Secrets | Web3 |
-|--------|---------|------------|------|---------|------|
-| `none` | No | No | No | No | No |
-| `read_only` | No | Read `./**` | No | No | No |
-| `trading_bot` | Binance, Bybit, OKX, Coinbase, Dextools, CoinGecko | `./config/**`, `./logs/**` | No | `*_API_KEY`, `*_API_SECRET` | Chains 1, 56, 137, 42161 |
-| `defi` | All | No | No | No | Chains 1, 56, 137, 42161, 10, 8453, 43114 |
+| Preset | Network | Filesystem | Exec | Secrets |
+|--------|---------|------------|------|---------|
+| `none` | No | No | No | No |
+| `read_only` | No | Read `./**` | No | No |
 
 ## Auto-Scan on Session Start
 

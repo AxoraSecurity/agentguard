@@ -1,6 +1,6 @@
 # Scan Detection Rules — Pattern Reference
 
-Detailed Grep patterns for all 24 detection rules. Use this as reference when executing the `scan` subcommand.
+Detailed Grep patterns for the scan rules. Use this as reference when executing the `scan` subcommand.
 
 **Markdown files**: For `.md` files, only scan inside fenced code blocks (between ``` markers). Additionally, decode and re-scan base64-encoded payloads found in any file.
 
@@ -103,7 +103,7 @@ Detailed Grep patterns for all 24 detection rules. Use this as reference when ex
 
 | Pattern | Description |
 |---------|-------------|
-| `['"\x60]0x[a-fA-F0-9]{64}['"\x60]` | Ethereum private key in quotes |
+| `['"\x60]0x[a-fA-F0-9]{64}['"\x60]` | Hardcoded private key in quotes |
 | `private[_\s]?key\s*[:=]\s*['"\x60]0x[a-fA-F0-9]{64}` (i) | Named private key |
 | `PRIVATE_KEY\s*[:=]\s*['"\x60][a-fA-F0-9]{64}` (i) | PRIVATE_KEY assignment |
 
@@ -121,84 +121,12 @@ Detailed Grep patterns for all 24 detection rules. Use this as reference when ex
 
 | Pattern | Description |
 |---------|-------------|
-| Quoted string with 12-24 BIP-39 words starting with: abandon, ability, able, about, above, absent, absorb, abstract, absurd, abuse | Mnemonic phrase |
+| Quoted string with 12-24 words starting with: abandon, ability, able, about, above, absent, absorb, abstract, absurd, abuse | Recovery phrase |
 | `seed[_\s]?phrase\s*[:=]\s*['"\x60]` (i) | Seed phrase assignment |
 | `mnemonic\s*[:=]\s*['"\x60]` (i) | Mnemonic assignment |
 | `recovery[_\s]?phrase\s*[:=]\s*['"\x60]` (i) | Recovery phrase assignment |
 
 **Git-aware severity**: same table as Rule 7 above.
-
-## Rule 9: WALLET_DRAINING (CRITICAL)
-**Files**: `*.js`, `*.ts`, `*.sol`
-
-| Pattern | Description |
-|---------|-------------|
-| `approve\s*\([^,]+,\s*(type\s*\(\s*uint256\s*\)\s*\.max\|0xffffffff\|MaxUint256\|MAX_UINT)` (i) | Approve max uint |
-| `transferFrom.*approve\|approve.*transferFrom` (i, multiline) | Approve + transferFrom |
-| `permit\s*\(.*deadline` (i, multiline) | Permit with deadline |
-
-## Rule 10: UNLIMITED_APPROVAL (HIGH)
-**Files**: `*.js`, `*.ts`, `*.sol`
-
-| Pattern | Description |
-|---------|-------------|
-| `\.approve\s*\([^,]+,\s*ethers\.constants\.MaxUint256` | ethers MaxUint256 approval |
-| `\.approve\s*\([^,]+,\s*2\s*\*\*\s*256\s*-\s*1` | 2**256-1 approval |
-| `\.approve\s*\([^,]+,\s*type\(uint256\)\.max` | Solidity type(uint256).max |
-| `setApprovalForAll\s*\([^,]+,\s*true\)` | setApprovalForAll(true) |
-
-## Rule 11: DANGEROUS_SELFDESTRUCT (HIGH)
-**Files**: `*.sol`
-
-| Pattern | Description |
-|---------|-------------|
-| `selfdestruct\s*\(` | selfdestruct call |
-| `suicide\s*\(` | suicide call (deprecated) |
-
-## Rule 12: HIDDEN_TRANSFER (MEDIUM)
-**Files**: `*.sol`
-
-| Pattern | Description |
-|---------|-------------|
-| `.transfer(` in functions not named `transfer`/`_transfer` | Hidden transfer in non-transfer function |
-| `\.call\{value:\s*[^}]+\}\s*\(['"\x60]['"\x60]\)` | Low-level call with value, empty data |
-
-## Rule 13: PROXY_UPGRADE (MEDIUM)
-**Files**: `*.sol`, `*.js`, `*.ts`
-
-| Pattern | Description |
-|---------|-------------|
-| `upgradeTo\s*\(` | upgradeTo call |
-| `upgradeToAndCall\s*\(` | upgradeToAndCall |
-| `_setImplementation\s*\(` | Internal set implementation |
-| `IMPLEMENTATION_SLOT` | Implementation storage slot |
-
-## Rule 14: FLASH_LOAN_RISK (MEDIUM)
-**Files**: `*.sol`, `*.js`, `*.ts`
-
-| Pattern | Description |
-|---------|-------------|
-| `flashLoan\s*\(` (i) | flashLoan call |
-| `flash\s*Loan` (i) | flashLoan reference |
-| `IFlashLoan` | Flash loan interface |
-| `executeOperation\s*\(` | AAVE callback |
-| `AAVE.*flash` (i) | AAVE flash reference |
-
-## Rule 15: REENTRANCY_PATTERN (HIGH)
-**Files**: `*.sol`
-
-Look for external calls followed by state changes in the same function:
-- `.call{` or `.transfer(` followed by a state variable assignment (`variable =`, `variable +=`, etc.)
-- This violates the Checks-Effects-Interactions pattern
-
-## Rule 16: SIGNATURE_REPLAY (HIGH)
-**Files**: `*.sol`
-
-| Pattern | Description |
-|---------|-------------|
-| `ecrecover\s*\(` | ecrecover usage |
-
-**Validation**: After finding `ecrecover`, check if the enclosing function also references `nonce`. If no nonce is found, flag as SIGNATURE_REPLAY.
 
 ## Rule 17: OBFUSCATION (HIGH)
 **Files**: `*.js`, `*.ts`, `*.mjs`, `*.py`, `*.md`

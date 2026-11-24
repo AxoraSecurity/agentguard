@@ -99,8 +99,8 @@ export function containsCriticalSecrets(content: string): boolean {
  */
 export function getSecretTypeDescription(type: string): string {
   const descriptions: Record<string, string> = {
-    PRIVATE_KEY: 'Ethereum private key',
-    MNEMONIC: 'Wallet seed phrase / mnemonic',
+    PRIVATE_KEY: 'Hardcoded private key',
+    MNEMONIC: 'Seed phrase or mnemonic',
     SSH_KEY: 'SSH private key',
     AWS_KEY: 'AWS access key ID',
     AWS_SECRET: 'AWS secret access key',

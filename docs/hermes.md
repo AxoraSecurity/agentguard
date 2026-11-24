@@ -56,7 +56,7 @@ data. It is not a transport gate: even when local policy would block a T3/T4
 endpoint or visible PII, AgentGuard records `policyDecision` plus
 `enforcementStatus=would_block` and returns no blocking directive. Likewise,
 `post_api_request` can correlate suspicious output but cannot stop it from
-flowing through Hermes. The actual final interception is `pre_tool_call` if the
+flowing through Hermes. The blocking path is `pre_tool_call` if the
 response attempts a dangerous local action.
 
 On Unix, the evaluator uses a `0600` socket inside a `0700` directory; a

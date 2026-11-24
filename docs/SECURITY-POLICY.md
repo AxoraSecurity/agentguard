@@ -61,7 +61,7 @@ Configure via `/agentguard config <level>`:
 
 | Level | Priority Range | Description |
 |-------|----------------|-------------|
-| **critical** | 90-100 | Immediate block — private keys, destructive commands |
+| **critical** | 90-100 | Immediate block — leaked credentials, destructive commands |
 | **high** | 70-89 | Strong risk — API secrets, untrusted network exfil |
 | **medium** | 50-69 | Moderate risk — system commands, network activity |
 | **low** | 0-49 | Minimal risk — safe/read-only operations |
@@ -236,35 +236,7 @@ high-risk TLD handling, or webhook exfiltration.
 
 ---
 
-### 4.5 Web3 Operations (`web3_tx` / `web3_sign`)
-
-#### GoPlus Integration
-
-| Check | Description | Trigger → Action |
-|-------|-------------|------------------|
-| **Phishing Site** | Origin URL on phishing list | `PHISHING_ORIGIN` → DENY (critical) |
-| **Malicious Address** | Target address blacklisted | `MALICIOUS_ADDRESS` → DENY (critical) |
-| **Honeypot Related** | Address associated with honeypot | `HONEYPOT_RELATED` → flag (high) |
-| **Unlimited Approval** | Token approval for max uint256 | `UNLIMITED_APPROVAL` → CONFIRM (high) |
-| **Simulation Failed** | Transaction simulation error | `SIMULATION_FAILED` → flag (medium) |
-
-#### Environment Variables
-
-```bash
-GOPLUS_API_KEY=your_key         # Required for simulation
-GOPLUS_API_SECRET=your_secret   # Required for simulation
-```
-
-#### Degradation Strategy
-
-When GoPlus is unavailable:
-1. `SIMULATION_UNAVAILABLE` tag is set
-2. Decision falls back to policy-based rules only
-3. Capability model and secret scanning still apply
-
----
-
-## 5. Static Scan Rules (24 Rules)
+## 5. Static Scan Rules
 
 ### Critical Severity
 
@@ -276,7 +248,6 @@ When GoPlus is unavailable:
 | Read Keychain/Browser Credentials | `READ_KEYCHAIN` | All |
 | Private Key Pattern | `PRIVATE_KEY_PATTERN` | All |
 | Mnemonic Pattern | `MNEMONIC_PATTERN` | All |
-| Wallet Draining | `WALLET_DRAINING` | `.js`, `.ts`, `.sol` |
 | Prompt Injection | `PROMPT_INJECTION` | All |
 | Webhook Exfiltration URL | `WEBHOOK_EXFIL` | All |
 | Trojan Distribution | `TROJAN_DISTRIBUTION` | `.md` |
@@ -286,10 +257,6 @@ When GoPlus is unavailable:
 | Rule | ID | Target Files |
 |------|-----|--------------|
 | Shell Execution | `SHELL_EXEC` | `.js`, `.ts`, `.mjs`, `.cjs`, `.py`, `.md` |
-| Unlimited Approval | `UNLIMITED_APPROVAL` | `.js`, `.ts`, `.sol` |
-| Dangerous Selfdestruct | `DANGEROUS_SELFDESTRUCT` | `.sol` |
-| Reentrancy Pattern | `REENTRANCY_PATTERN` | `.sol` |
-| Signature Replay | `SIGNATURE_REPLAY` | `.sol` |
 | Dynamic code execution | `DYNAMIC_CODE_EXECUTION` | `.js`, `.ts`, `.mjs`, `.py` |
 | Encoded or packed code | `OBFUSCATION` | `.js`, `.ts`, `.mjs`, `.py` |
 | Unrestricted Network Exfil | `NET_EXFIL_UNRESTRICTED` | `.js`, `.ts`, `.mjs`, `.py`, `.md` |
@@ -300,9 +267,6 @@ When GoPlus is unavailable:
 | Rule | ID | Target Files |
 |------|-----|--------------|
 | Read Environment Secrets | `READ_ENV_SECRETS` | `.js`, `.ts`, `.mjs`, `.py` |
-| Hidden Transfer | `HIDDEN_TRANSFER` | `.sol` |
-| Proxy Upgrade | `PROXY_UPGRADE` | `.sol`, `.js`, `.ts` |
-| Flash Loan Risk | `FLASH_LOAN_RISK` | `.sol`, `.js`, `.ts` |
 | Suspicious IP Address | `SUSPICIOUS_IP` | All |
 | Social Engineering | `SOCIAL_ENGINEERING` | `.md` |
 
@@ -326,11 +290,6 @@ interface CapabilityModel {
   filesystem_allowlist: string[];   // Allowed paths (glob patterns)
   exec: 'allow' | 'deny';           // Command execution
   secrets_allowlist: string[];      // Allowed secret patterns
-  web3?: {
-    chains_allowlist: number[];     // Chain IDs
-    rpc_allowlist: string[];        // RPC endpoints
-    tx_policy: 'allow' | 'confirm_high_risk' | 'deny';
-  };
 }
 ```
 
@@ -356,39 +315,6 @@ interface CapabilityModel {
 }
 ```
 
-#### `trading_bot`
-```json
-{
-  "network_allowlist": [
-    "api.binance.com", "api.bybit.com", "api.okx.com",
-    "api.coinbase.com", "*.dextools.io", "*.coingecko.com"
-  ],
-  "filesystem_allowlist": ["./config/**", "./logs/**"],
-  "exec": "deny",
-  "secrets_allowlist": ["*_API_KEY", "*_API_SECRET"],
-  "web3": {
-    "chains_allowlist": [1, 56, 137, 42161],
-    "rpc_allowlist": ["*"],
-    "tx_policy": "confirm_high_risk"
-  }
-}
-```
-
-#### `defi`
-```json
-{
-  "network_allowlist": ["*"],
-  "filesystem_allowlist": [],
-  "exec": "deny",
-  "secrets_allowlist": [],
-  "web3": {
-    "chains_allowlist": [1, 56, 137, 42161, 10, 8453, 43114],
-    "rpc_allowlist": ["*"],
-    "tx_policy": "confirm_high_risk"
-  }
-}
-```
-
 ### Capability Enforcement
 
 | Action Type | Capability Check |
@@ -397,7 +323,7 @@ interface CapabilityModel {
 | `network_request` | `can_network !== false` |
 | `write_file` | `can_write !== false` |
 | `read_file` | `can_read !== false` |
-| `web3_tx` / `web3_sign` | `can_web3 !== false` |
+| `secret_access` | `secrets_allowlist` contains the secret name |
 
 ---
 
@@ -498,10 +424,10 @@ import {
 | Category | Rules |
 |----------|-------|
 | **Destructive commands** | `rm -rf`, `mkfs`, `dd if=`, fork bomb, `chmod 777`, high-risk `curl/wget\|sh/bash` |
-| **Key exfiltration** | Private keys (0x+64 hex), mnemonics (12-24 BIP39), SSH keys |
+| **Credential exfiltration** | Hardcoded private keys, recovery phrases, SSH keys |
 | **Webhook exfil** | Discord/Telegram/Slack webhooks (unless allowlisted) |
 | **Prompt injection** | `ignore previous instructions`, jailbreak attempts |
-| **Malicious addresses** | GoPlus-flagged phishing/blacklisted addresses |
+| **Path traversal** | File paths that resolve outside the allowed root |
 
 ### Require Confirmation (High — CONFIRM in balanced)
 
@@ -510,7 +436,7 @@ import {
 | **Sensitive data access** | `cat /etc/passwd`, `cat ~/.ssh`, `env`, `printenv` |
 | **API key leakage** | AWS/GitHub/Bearer tokens in request body |
 | **Untrusted domains** | POST/PUT to non-allowlisted domains |
-| **Web3 high-risk** | Unlimited approval, unknown spender |
+| **Sensitive files** | Reads or writes of `.env`, SSH keys, or cloud credential files |
 | **Untrusted skills** | Skills not in trust registry |
 | **Remote script execution** | Ordinary `curl/wget\|sh/bash`, including known installer sources |
 
@@ -555,13 +481,6 @@ network:
   webhook_domain: DENY (unless allowlisted)
   body_contains_secret: DENY/CONFIRM by priority
   untrusted_domain: CONFIRM
-
-# Web3
-web3:
-  phishing_origin: DENY
-  malicious_address: DENY
-  unlimited_approval: CONFIRM
-  unknown_spender: CONFIRM
 
 # File Operations
 file:

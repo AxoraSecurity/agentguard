@@ -13,7 +13,7 @@ import { SkillScanner } from './scanner/index.js';
 import { SkillRegistry } from './registry/index.js';
 import { ActionScanner } from './action/index.js';
 import type { SkillIdentity, CapabilityModel } from './types/skill.js';
-import type { ActionEnvelope, Web3Intent } from './types/action.js';
+import type { ActionEnvelope } from './types/action.js';
 import type { TrustLevel } from './types/registry.js';
 import { packageVersion } from './version.js';
 
@@ -124,7 +124,7 @@ function createServer(options?: { registryPath?: string }): Server {
                 required: ['id', 'source', 'version_ref', 'artifact_hash'],
               },
               path: { type: 'string', description: 'Path to skill directory' },
-              deep: { type: 'boolean', description: 'Enable deep analysis', default: false },
+              deep: { type: 'boolean', description: 'Scan more of the tree', default: false },
             },
             required: ['skill', 'path'],
           },
@@ -220,7 +220,7 @@ function createServer(options?: { registryPath?: string }): Server {
         // Action scanner tools
         {
           name: 'action_scanner_decide',
-          description: 'Evaluate a runtime action and return allow/deny/confirm decision.',
+          description: 'Evaluate a runtime action and return allow, require approval, or block.',
           inputSchema: {
             type: 'object',
             properties: {
@@ -262,22 +262,6 @@ function createServer(options?: { registryPath?: string }): Server {
               },
             },
             required: ['actor', 'action', 'context'],
-          },
-        },
-        {
-          name: 'action_scanner_simulate_web3',
-          description: 'Simulate a Web3 transaction using GoPlus API. Returns risk analysis.',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              chain_id: { type: 'number', description: 'Chain ID (e.g., 1 for Ethereum)' },
-              from: { type: 'string', description: 'Sender address' },
-              to: { type: 'string', description: 'Target address' },
-              value: { type: 'string', description: 'Value in wei' },
-              data: { type: 'string', description: 'Transaction calldata' },
-              origin: { type: 'string', description: 'DApp origin URL' },
-            },
-            required: ['chain_id', 'from', 'to', 'value'],
           },
         },
       ],
@@ -413,30 +397,6 @@ function createServer(options?: { registryPath?: string }): Server {
           envelope.context.time = new Date().toISOString();
 
           const result = await actionScanner.decide(envelope);
-
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify(result, null, 2),
-              },
-            ],
-          };
-        }
-
-        // Action scanner: simulate_web3
-        case 'action_scanner_simulate_web3': {
-          const intent: Web3Intent = {
-            chain_id: args?.chain_id as number,
-            from: args?.from as string,
-            to: args?.to as string,
-            value: args?.value as string,
-            data: args?.data as string | undefined,
-            origin: args?.origin as string | undefined,
-            kind: 'tx',
-          };
-
-          const result = await actionScanner.simulateWeb3(intent);
 
           return {
             content: [
