@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "agentguard",
   "display_name": "Axora AgentGuard",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "icon": "icon.png",
   "description": "Local guard for AI agents: AgentGuard DeepScan, runtime evaluation, and a local audit log.",
   "long_description": "Axora AgentGuard is the local guard for AI agents. It scans components with AgentGuard DeepScan, evaluates runtime actions, and keeps a local audit log. An action decision is allow, require approval, or block.",

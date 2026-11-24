@@ -1,6 +1,6 @@
 {
   "name": "@axorasec/agentguard",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Axora AgentGuard. Local guard for AI agents: AgentGuard DeepScan, runtime evaluation, patrol, checkup, and a local audit log.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
