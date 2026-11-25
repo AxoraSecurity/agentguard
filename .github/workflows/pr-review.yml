@@ -176,14 +176,17 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
-          if grep -q '^NO_FINDINGS$' /tmp/review.md; then
-            echo "No actionable findings; skipping PR comment."
-            exit 0
-          fi
-
           COMMENT_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
             --jq '.[] | select(.user.type == "Bot" and (.body | contains("<!-- agentguard-pr-review -->"))) | .id' \
             | tail -n 1)
+
+          if grep -q '^NO_FINDINGS$' /tmp/review.md; then
+            if [ -n "$COMMENT_ID" ]; then
+              gh api "repos/$REPO/issues/comments/$COMMENT_ID" --method DELETE
+            fi
+            echo "No actionable findings; removed any stale PR review comment."
+            exit 0
+          fi
 
           if [ -n "$COMMENT_ID" ]; then
             gh api "repos/$REPO/issues/comments/$COMMENT_ID" \
