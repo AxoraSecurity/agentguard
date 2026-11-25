@@ -7,7 +7,7 @@ import { redactTextPreservingActivationUrls } from './self-output.js';
 export function isNativePublicSearchTool(host: RuntimeAgentHost, toolName: string): boolean {
   if (host === 'claude-code') return toolName === 'WebSearch';
   if (host === 'codex') return toolName === 'WebSearch' || toolName === 'web_search';
-  if (host === 'openclaw' || host === 'qclaw' || host === 'hermes') return toolName === 'web_search';
+  if (host === 'openclaw' || host === 'hermes') return toolName === 'web_search';
   if (host === 'dsh') return toolName === 'web_search' || toolName === 'search_query';
   return false;
 }

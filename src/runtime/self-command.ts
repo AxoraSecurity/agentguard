@@ -8,7 +8,6 @@ const SUPPORTED_AGENT_COMMANDS = [
   'claude-code',
   'codex',
   'openclaw',
-  'qclaw',
   'hermes',
   'cursor',
   'cursor-agent',

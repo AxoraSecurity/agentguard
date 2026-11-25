@@ -161,7 +161,6 @@ export type RuntimeAgentHost =
   | 'openclaw'
   | 'hermes'
   | 'dsh'
-  | 'qclaw'
   | 'cursor'
   | 'gemini'
   | 'copilot'

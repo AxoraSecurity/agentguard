@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { homedir } from 'node:os';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 
-export type AgentInstaller = 'claude-code' | 'codex' | 'openclaw' | 'hermes' | 'qclaw' | 'dsh';
+export type AgentInstaller = 'claude-code' | 'codex' | 'openclaw' | 'hermes' | 'dsh';
 
 export interface InstallResult {
   agent: AgentInstaller;
@@ -32,7 +32,6 @@ export function installAgentTemplates(agent: AgentInstaller, options: {
   if (agent === 'codex') return installCodex(root, Boolean(options.force));
   if (agent === 'openclaw') return installOpenClaw(options.cwd, Boolean(options.force));
   if (agent === 'hermes') return installHermes(options.cwd, Boolean(options.force), { shellHooks: Boolean(options.shellHooks) });
-  if (agent === 'qclaw') return installQClaw(root, Boolean(options.force));
   if (agent === 'dsh') return installDsh(root, options.profile);
   throw new Error(`Unsupported agent installer: ${agent}`);
 }
@@ -347,13 +346,6 @@ function parseHermesYamlScalar(value: string | undefined): string {
     return trimmed.slice(1, -1).trim();
   }
   return trimmed;
-}
-
-function installQClaw(root: string, force: boolean): InstallResult {
-  const qclawRoot = join(root, '.qclaw');
-  const configPath = join(qclawRoot, 'qclaw.json');
-  const pluginResult = installClawPlugin('qclaw', qclawRoot, configPath, force);
-  return { agent: 'qclaw', files: pluginResult.files };
 }
 
 function writeIfAllowed(path: string, content: string, force: boolean): void {
@@ -805,7 +797,7 @@ hooks_auto_accept: false
 `;
 }
 
-function installClawPlugin(agent: 'openclaw' | 'qclaw', root: string, configPath: string, force: boolean): InstallResult {
+function installClawPlugin(agent: 'openclaw', root: string, configPath: string, force: boolean): InstallResult {
   const pluginDir = join(root, 'plugins', 'agentguard');
   const skillDir = join(root, 'skills', 'agentguard');
   const packagePath = join(pluginDir, 'package.json');
@@ -813,7 +805,7 @@ function installClawPlugin(agent: 'openclaw' | 'qclaw', root: string, configPath
   const manifestPath = join(pluginDir, 'openclaw.plugin.json');
 
   copyBundledSkill(skillDir, force);
-  writeIfAllowed(packagePath, JSON.stringify(openClawPackageManifest(agent), null, 2) + '\n', force);
+  writeIfAllowed(packagePath, JSON.stringify(openClawPackageManifest(), null, 2) + '\n', force);
   writeIfAllowed(pluginPath, openClawPluginTemplate(), force);
   writeIfAllowed(manifestPath, JSON.stringify(openClawPluginManifest(), null, 2) + '\n', force);
   enableClawPlugin(configPath, pluginDir);
@@ -930,8 +922,8 @@ module.exports = Object.defineProperties(register, {
 `;
 }
 
-function openClawPackageManifest(agent: 'openclaw' | 'qclaw' = 'openclaw'): unknown {
-  const manifest: Record<string, unknown> = {
+function openClawPackageManifest(): unknown {
+  return {
     name: 'agentguard-openclaw-local',
     private: true,
     type: 'commonjs',
@@ -940,14 +932,6 @@ function openClawPackageManifest(agent: 'openclaw' | 'qclaw' = 'openclaw'): unkn
       runtimeExtensions: ['./index.js'],
     },
   };
-  if (agent === 'qclaw') {
-    manifest.name = 'agentguard-qclaw-local';
-    manifest.qclaw = {
-      extensions: ['./index.js'],
-      runtimeExtensions: ['./index.js'],
-    };
-  }
-  return manifest;
 }
 
 function openClawPluginManifest(): unknown {

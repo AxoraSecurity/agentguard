@@ -3,6 +3,7 @@
 ## [1.2.7] - Unreleased
 
 ### Changed
+- Removed QClaw installation, runtime, and scheduled threat-feed integration. Saved QClaw host selections are ignored; run `agentguard init --agent <supported-agent>` to select a supported host. `agentguard disconnect` can still remove a scheduled job installed by an earlier release.
 - Updated the README, security documentation, configuration guidance, examples, and Axora AgentGuard brand assets. Clarified the `allow`, `confirm`, and `deny` values returned by the action evaluation API.
 - Removed the legacy remote simulation client and MCP simulation tool, along with the unused HTTP client dependency. Compatibility fields remain available to existing TypeScript callers.
 - Unverified transaction and signature actions now require user confirmation, or are denied when no user is present.

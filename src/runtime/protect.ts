@@ -849,7 +849,7 @@ function buildRuntimeAction(options: ProtectOptions): RuntimeAction {
   let suppressedPublicSearchValues = 0;
   if (!process.env.TOOL_INPUT && actionType === 'llm_request'
       && (agentHost === 'hermes' && toolName === 'hermes.pre_api_request'
-        || (agentHost === 'openclaw' || agentHost === 'qclaw')
+        || agentHost === 'openclaw'
           && toolName === 'openclaw.llm_input')) {
     try {
       const inspected = inspectWithPublicSearchProvenance(
@@ -960,9 +960,9 @@ function resolveObservedSearchResult(
   const post = host === 'claude-code' ? claudeEvent === 'PostToolUse'
     : host === 'codex' ? codexEvent === 'PostToolUse'
       : host === 'hermes' ? phase === 'post' && raw.hook_event_name === 'post_tool_call'
-        : (host === 'openclaw' || host === 'qclaw') && phase === 'post';
+        : host === 'openclaw' && phase === 'post';
   if (!post) return undefined;
-  const result = host === 'openclaw' || host === 'qclaw'
+  const result = host === 'openclaw'
     ? raw.result ?? raw.response ?? raw.output ?? raw.tool_response
     : raw.tool_response ?? raw.toolResponse;
   return result;

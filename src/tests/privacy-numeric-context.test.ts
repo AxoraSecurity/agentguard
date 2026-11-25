@@ -338,7 +338,7 @@ describe('Numeric PII context', () => {
     assert.equal(shouldReportAuditEventToCloud(result.event), true);
   });
 
-  it('uses observed search results, not search arguments, across Codex, OpenClaw/QClaw, and Hermes', async () => {
+  it('uses observed search results, not search arguments, across Codex, OpenClaw, and Hermes', async () => {
     const root = mkdtempSync(join(tmpdir(), 'agentguard-cross-agent-search-'));
     const config: AgentGuardConfig = {
       version: 1, level: 'balanced', policyCachePath: join(root, 'policy.json'),
@@ -350,8 +350,6 @@ describe('Numeric PII context', () => {
       ['codex', 'web_search', { hook_event_name: 'PostToolUse', tool_name: 'web_search',
         tool_input: { query: 'coin price' }, tool_response: { content: JSON.stringify({ id: number }) } }],
       ['openclaw', 'web_search', { toolName: 'web_search', params: { query: 'coin price' },
-        result: { content: JSON.stringify({ id: number }) } }],
-      ['qclaw', 'web_search', { toolName: 'web_search', params: { query: 'coin price' },
         result: { content: JSON.stringify({ id: number }) } }],
       ['hermes', 'web_search', { hook_event_name: 'post_tool_call', tool_name: 'web_search',
         status: 'ok', tool_input: { query: 'coin price' }, tool_response: { content: JSON.stringify({ id: number }) } }],
@@ -366,7 +364,7 @@ describe('Numeric PII context', () => {
 
       const queryOnly = await protectAction({ config, agentHost, actionType: 'web_search', toolName,
         phase: 'pre', auditSafe: true, rawInput: { session_id: `sess-${agentHost}`, ...raw,
-          ...(agentHost === 'openclaw' || agentHost === 'qclaw'
+          ...(agentHost === 'openclaw'
             ? { result: undefined, params: { query: '银行卡号 5284917302468138' } }
             : { tool_response: undefined, tool_input: { query: '银行卡号 5284917302468138' },
               hook_event_name: agentHost === 'hermes' ? 'pre_tool_call' : 'PreToolUse' }) } });
@@ -374,13 +372,13 @@ describe('Numeric PII context', () => {
 
       const noResult = await protectAction({ config, agentHost, actionType: 'web_search', toolName,
         phase: 'post', auditSafe: true, rawInput: { session_id: `sess-${agentHost}`, ...raw,
-          ...(agentHost === 'openclaw' || agentHost === 'qclaw'
+          ...(agentHost === 'openclaw'
             ? { result: undefined } : { tool_response: undefined }) } });
       if (noResult) assert.equal(shouldReportAuditEventToCloud(noResult.event), false, `${agentHost}:no-result`);
 
       const privateValue = await protectAction({ config, agentHost, actionType: 'web_search', toolName,
         phase: 'post', auditSafe: true, rawInput: { session_id: `sess-${agentHost}`,
-          ...raw, ...(agentHost === 'openclaw' || agentHost === 'qclaw'
+          ...raw, ...(agentHost === 'openclaw'
             ? { result: { content: 'card_number: 5284917302468138' } }
             : { tool_response: { content: 'card_number: 5284917302468138' } }) } });
       assert.equal(privateValue?.decision.decision, 'block', agentHost);
@@ -392,7 +390,7 @@ describe('Numeric PII context', () => {
 
       const unverified = await protectAction({ config, agentHost, actionType: 'web_search', toolName,
         phase: 'post', auditSafe: true, rawInput: { session_id: `sess-${agentHost}`,
-          ...raw, ...(agentHost === 'openclaw' || agentHost === 'qclaw'
+          ...raw, ...(agentHost === 'openclaw'
             ? { result: { opaque: number } }
             : { tool_response: { opaque: number } }) } });
       assert.equal(unverified?.event.metadata?.publicSearchOutput, undefined, agentHost);
@@ -495,7 +493,7 @@ describe('Numeric PII context', () => {
       };
       writeFileSync(config.policyCachePath, JSON.stringify(getDefaultEffectiveRuntimePolicy()));
       const publicText = JSON.stringify({ id: '2026101215253008' });
-      for (const host of ['hermes', 'openclaw', 'qclaw'] as const) {
+      for (const host of ['hermes', 'openclaw'] as const) {
         const sessionId = `provenance-${host}`;
         const source = await protectAction({ config, agentHost: host, actionType: 'web_search',
           toolName: 'web_search', phase: 'post', rawInput: host === 'hermes'

@@ -373,37 +373,61 @@ describe('CLI subscribe command modes', () => {
   });
 
   it('cron internal subscribe runs pull advisories without subscribing first', async () => {
-    for (const args of [
-      ['subscribe', '--json', '--cron-run'],
-      ['subscribe', '--cron-notify-run'],
-    ]) {
-      const requests: string[] = [];
-      const server = http.createServer((req, res) => {
-        requests.push(`${req.method} ${req.url}`);
-        res.setHeader('content-type', 'application/json');
-        if (req.method === 'GET' && req.url?.startsWith('/api/v1/feed/advisories')) {
-          res.end(JSON.stringify({ success: true, data: { advisories: [] } }));
-          return;
-        }
-        res.statusCode = 404;
-        res.end(JSON.stringify({ success: false }));
-      });
-      await new Promise<void>((resolvePromise) => server.listen(0, '127.0.0.1', resolvePromise));
-      try {
-        const address = server.address();
-        assert.ok(address && typeof address === 'object');
-        const cloudUrl = `http://127.0.0.1:${(address as AddressInfo).port}`;
-        const home = mkdtempSync(join(tmpdir(), 'ag-cli-subscribe-cron-order-'));
-
-        const result = await runCli(args, home, cloudUrl);
-
-        assert.equal(result.exitCode, 0);
-        assert.equal(result.stderr, '');
-        assert.deepEqual(requests, ['GET /api/v1/feed/advisories']);
-      } finally {
-        await new Promise<void>((resolvePromise) => server.close(() => resolvePromise()));
+    const requests: string[] = [];
+    const server = http.createServer((req, res) => {
+      requests.push(`${req.method} ${req.url}`);
+      res.setHeader('content-type', 'application/json');
+      if (req.method === 'GET' && req.url?.startsWith('/api/v1/feed/advisories')) {
+        res.end(JSON.stringify({ success: true, data: { advisories: [] } }));
+        return;
       }
+      res.statusCode = 404;
+      res.end(JSON.stringify({ success: false }));
+    });
+    await new Promise<void>((resolvePromise) => server.listen(0, '127.0.0.1', resolvePromise));
+    try {
+      const address = server.address();
+      assert.ok(address && typeof address === 'object');
+      const cloudUrl = `http://127.0.0.1:${(address as AddressInfo).port}`;
+      const home = mkdtempSync(join(tmpdir(), 'ag-cli-subscribe-cron-order-'));
+
+      const result = await runCli(['subscribe', '--json', '--cron-run'], home, cloudUrl);
+
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, '');
+      assert.deepEqual(requests, ['GET /api/v1/feed/advisories']);
+    } finally {
+      await new Promise<void>((resolvePromise) => server.close(() => resolvePromise()));
     }
+  });
+
+  it('rejects the retired QClaw cron target before contacting Cloud', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'ag-cli-subscribe-unsupported-'));
+    const result = await runCli(['subscribe', '--cron-target', 'qclaw'], home, 'http://127.0.0.1:9');
+    assert.notEqual(result.exitCode, 0);
+    assert.match(result.stderr, /Invalid cron target/);
+  });
+
+  it('explains how to replace a retired saved host before scheduling', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'ag-cli-subscribe-retired-host-'));
+    writeConfig(home, 'http://127.0.0.1:9');
+    const configPath = join(home, 'config.json');
+    const saved = JSON.parse(readFileSync(configPath, 'utf8'));
+    saved.agentHost = 'qclaw';
+    saved.agentHosts = ['qclaw'];
+    writeFileSync(configPath, JSON.stringify(saved));
+
+    const result = await runCliNoConfigWrite(['subscribe', '--cron', '0 * * * *'], home);
+    assert.notEqual(result.exitCode, 0);
+    assert.match(result.stderr, /QClaw integration was removed in 1\.2\.7/);
+  });
+
+  it('silences a retired notification job without contacting Cloud', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'ag-cli-subscribe-retired-job-'));
+    const result = await runCliNoConfigWrite(['subscribe', '--cron-notify-run'], home);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, 'NO_REPLY\n');
+    assert.equal(existsSync(join(home, 'config.json')), false);
   });
 
   it('rejects generic DSH cron installation before Cloud or scheduler side effects', async () => {
@@ -613,51 +637,6 @@ describe('CLI subscribe command modes', () => {
       assert.match(state[0].pulledAt, /^\d{4}-\d{2}-\d{2}T/);
       assert.deepEqual(state[0].newSeenIds, ['AGS-2026-subscribe']);
       assert.deepEqual(state[0].foundIds, ['AGS-2026-subscribe']);
-    });
-  });
-
-  it('--cron-notify-run prints only the manual notification body when new advisories exist', async () => {
-    await withFeedServer([advisory], async (cloudUrl) => {
-      const home = mkdtempSync(join(tmpdir(), 'ag-cli-subscribe-'));
-
-      const result = await runCli(['subscribe', '--cron-notify-run'], home, cloudUrl);
-
-      assert.equal(result.exitCode, 0);
-      assert.equal(result.stderr, '');
-      assert.match(result.stdout, /^AgentGuard found new threat-feed advisories/m);
-      assert.match(result.stdout, /AGS-2026-subscribe/);
-      assert.match(result.stdout, /Remediation guidance:/);
-      assert.match(result.stdout, /Quarantine the malicious demo skill/);
-      assert.doesNotMatch(result.stdout, /agentguard subscribe --quiet/);
-      assert.doesNotMatch(result.stdout, /Pulled \d+ advisory/);
-    });
-  });
-
-  it('--cron-notify-run prints NO_REPLY when nothing should notify', async () => {
-    await withFeedServer([], async (cloudUrl) => {
-      const home = mkdtempSync(join(tmpdir(), 'ag-cli-subscribe-'));
-
-      const result = await runCli(['subscribe', '--cron-notify-run'], home, cloudUrl);
-
-      assert.equal(result.exitCode, 0);
-      assert.equal(result.stderr, '');
-      assert.equal(result.stdout, 'NO_REPLY\n');
-    });
-  });
-
-  it('--quiet --cron-notify-run prints only the match notification body and exits zero', async () => {
-    await withFeedServer([advisory], async (cloudUrl, reports) => {
-      const home = mkdtempSync(join(tmpdir(), 'ag-cli-subscribe-'));
-      installMatchingSkill(home);
-
-      const result = await runCli(['subscribe', '--quiet', '--cron-notify-run'], home, cloudUrl);
-
-      assert.equal(result.exitCode, 0);
-      assert.equal(result.stderr, '');
-      assert.match(result.stdout, /^AgentGuard threat-feed self-check found local matches:/m);
-      assert.match(result.stdout, /AGS-2026-subscribe: 1 match/);
-      assert.doesNotMatch(result.stdout, /Self-check found/);
-      assert.equal(reports.length, 1);
     });
   });
 
