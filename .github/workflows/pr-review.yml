@@ -107,8 +107,7 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
 
-          async function main() {
-            const prompt = fs.readFileSync('/tmp/review-prompt.md', 'utf8');
+          async function generateReview(prompt) {
             const response = await fetch('https://api.openai.com/v1/responses', {
               method: 'POST',
               headers: {
@@ -138,15 +137,36 @@ jobs:
               process.exit(1);
             }
 
-            const text =
+            return (
               data.output_text ||
               (data.output || [])
                 .flatMap((item) => item.content || [])
                 .map((content) => content.text || content.output_text || '')
                 .join('\n')
-                .trim();
+            ).trim();
+          }
 
-            const review = (text || 'NO_FINDINGS').trim();
+          async function main() {
+            const prompt = fs.readFileSync('/tmp/review-prompt.md', 'utf8');
+            let review = (await generateReview(prompt)) || 'NO_FINDINGS';
+            if (/goplus|web3/i.test(review)) {
+              const original = review;
+              review = await generateReview([
+                'Rewrite this PR review for public posting. Preserve every finding,',
+                'its severity, risk, and fix. Use neutral capability descriptions.',
+                'Do not include GoPlus or Web3, even in paths or identifiers.',
+                'Use existing neutral changed paths where possible; otherwise',
+                'describe a deleted file by its role without inventing a path.',
+                'Return only the revised Markdown review, not a summary.',
+                '',
+                original,
+              ].join('\n'));
+              const count = (value) => (value.match(/^\d+\.\s/gm) || []).length;
+              if (!review || review === 'NO_FINDINGS' || count(review) < count(original)) {
+                throw new Error('Neutral rewrite dropped review findings; refusing to post it.');
+              }
+            }
+
             if (/goplus|web3/i.test(review)) {
               console.error('Automated review contains restricted public terminology; refusing to post it.');
               process.exit(1);
