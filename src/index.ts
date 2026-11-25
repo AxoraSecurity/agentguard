@@ -53,7 +53,6 @@ export {
 } from './registry/index.js';
 export {
   ActionScanner,
-  GoPlusClient,
   type ActionScannerOptions,
 } from './action/index.js';
 

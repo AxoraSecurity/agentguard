@@ -3,7 +3,7 @@
 ## [1.2.5] - 2026-11-09
 
 ### Changed
-- Rebranded GoPlus AgentGuard as Axora AgentGuard and moved the npm package from `@goplus/agentguard` to `@axorasec/agentguard`. Update package dependencies and install commands to the new scope; the `agentguard` and `agentguard-mcp` commands keep their names.
+- Rebranded the product as Axora AgentGuard and published it as `@axorasec/agentguard`. Update package dependencies and install commands to that scope; the `agentguard` and `agentguard-mcp` commands keep their names.
 - Changed the default AgentGuard Cloud URL to `https://agentguard.axorasecurity.com`. Existing saved Cloud URLs remain in use until reconfigured.
 
 ## [1.2.4] - 2026-10-19
@@ -284,7 +284,7 @@
 
 ### Added
 - `checkup` subcommand — comprehensive agent health checkup with visual HTML report
-  - 6 security dimensions: Code Safety, Trust Hygiene, Runtime Defense, Secret Protection, Web3 Shield, Config Posture
+  - Security dimensions for code safety, trust hygiene, runtime defense, secret protection, and configuration posture
   - Weighted scoring algorithm (0–100 composite score)
   - Self-contained HTML report with dark theme, animated score gauge, and expandable findings
   - Lobster mascot with 4 health tiers: Muscular (S), Healthy (A), Tired (B), Sick (F)
@@ -323,7 +323,7 @@
 ### Fixed
 - Narrowed `allowed-tools` in SKILL.md from `Bash(node *)` to `Bash(node scripts/trust-cli.ts *)` and `Bash(node scripts/action-cli.ts *)`
 - Added `license`, `compatibility`, and `metadata` fields to SKILL.md
-- Declared optional env vars (`GOPLUS_API_KEY`, `GOPLUS_API_SECRET`) in skill metadata
+- Declared optional skill metadata for external credentials. Those credential names are no longer part of the skill.
 - Added explicit user confirmation requirement before trust registry mutations (`attest`, `revoke`)
 
 ### Added
@@ -346,10 +346,9 @@
 
 ### Added
 - Initial release of Axora AgentGuard
-- 24 detection rules covering execution, secrets, exfiltration, obfuscation, Web3, and social engineering
-- Runtime action evaluation (allow/deny/confirm) for commands, network requests, file ops, and Web3 transactions
+- 24 detection rules covering execution, secrets, exfiltration, obfuscation, and social engineering
+- Runtime action evaluation (allow/deny/confirm) for commands, network requests, and file operations
 - Trust registry with capability-based access control per skill
 - Claude Code hook integration (`PreToolUse` / `PostToolUse`)
 - Audit logging to `~/.agentguard/audit.jsonl`
 - Protection levels: strict, balanced, permissive
-- GoPlus API integration for Web3 transaction simulation (optional)

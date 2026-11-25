@@ -389,17 +389,28 @@ describe('Smoke: SkillScanner on vulnerable-skill', () => {
   it('should detect multiple violations in examples/vulnerable-skill', async () => {
     const scanner = new SkillScanner({ useExternalScanner: false });
     const vulnPath = join(projectRoot, 'examples', 'vulnerable-skill');
-    const result = await scanner.quickScan(vulnPath);
+    const result = await scanner.scan({
+      skill: { id: 'vulnerable-skill-demo', source: vulnPath, version_ref: 'local', artifact_hash: 'demo' },
+      payload: { type: 'dir', ref: vulnPath },
+    });
 
     assert.equal(result.risk_level, 'critical', 'Vulnerable skill should be critical');
     assert.ok(result.risk_tags.length >= 5, `Expected at least 5 risk tags, got ${result.risk_tags.length}`);
 
-    const expectedTags = ['SHELL_EXEC', 'PRIVATE_KEY_PATTERN', 'WEBHOOK_EXFIL'];
-    for (const tag of expectedTags) {
-      assert.ok(
-        result.risk_tags.includes(tag as never),
-        `Should detect ${tag}, got: ${result.risk_tags.join(', ')}`
-      );
+    assert.deepEqual(
+      [...new Set(result.evidence.map(item => item.file))].sort(),
+      ['credential-leak.js', 'malicious-helper.js'],
+      'Documented demo files should contain all current scanner findings',
+    );
+    const documentedTagsByFile = {
+      'credential-leak.js': ['SHELL_EXEC', 'AUTO_UPDATE', 'READ_ENV_SECRETS', 'READ_SSH_KEYS', 'PRIVATE_KEY_PATTERN', 'DYNAMIC_CODE_EXECUTION', 'WEBHOOK_EXFIL'],
+      'malicious-helper.js': ['SHELL_EXEC', 'AUTO_UPDATE', 'READ_ENV_SECRETS', 'READ_SSH_KEYS', 'READ_KEYCHAIN', 'DYNAMIC_CODE_EXECUTION', 'PROMPT_INJECTION', 'WEBHOOK_EXFIL'],
+    };
+    for (const [file, tags] of Object.entries(documentedTagsByFile)) {
+      const detected = new Set(result.evidence.filter(item => item.file === file).map(item => item.tag));
+      for (const tag of tags) {
+        assert.ok(detected.has(tag as never), `Expected ${tag} in ${file}; got: ${[...detected].join(', ')}`);
+      }
     }
   });
 });

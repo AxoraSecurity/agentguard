@@ -378,7 +378,7 @@ Native usage: optional status/debug command and incident review.
 
 ## Supply-chain scan APIs
 
-These are Cloud scan APIs rather than runtime control-plane APIs. Native clients may use them for paid/deep scans, but local scan should still work without Cloud.
+These are Cloud scan APIs rather than runtime control-plane APIs. Native clients may use them for hosted AgentGuard DeepScan, and local scan still works without Cloud.
 
 ### Scan content
 

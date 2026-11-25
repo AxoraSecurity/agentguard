@@ -235,7 +235,7 @@ fi
 # ---- Step 2: Copy skill files ----
 echo "[2/5] Installing skill files..."
 mkdir -p "$SKILLS_DIR"
-for f in SKILL.md README.md scan-rules.md action-policies.md web3-patterns.md evals.md patrol-checks.md suppress.example.yaml .clawignore; do
+for f in SKILL.md README.md scan-rules.md action-policies.md evals.md patrol-checks.md suppress.example.yaml .clawignore; do
   [ -f "$SKILL_SRC/$f" ] && cp "$SKILL_SRC/$f" "$SKILLS_DIR/" 2>/dev/null || true
 done
 echo "  OK: Skill files installed"
@@ -304,7 +304,7 @@ NODE
         "type": "string",
         "enum": ["strict", "balanced", "permissive"],
         "default": "balanced",
-        "description": "Protection level: strict (block all risky), balanced (block dangerous, confirm risky), permissive (only block critical)"
+        "description": "Protection level: Strict (strict) blocks dangerous and suspicious findings; low-risk commands can still run. Balanced (balanced, default) blocks dangerous actions and requires approval for risky ones. Observe (permissive in the CLI) blocks critical threats only."
       }
     }
   }

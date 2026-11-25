@@ -210,7 +210,11 @@ export interface Web3SimulationResult {
   risk_tags: string[];
   /** Human-readable explanation */
   explanation: string;
-  /** GoPlus raw response */
+  /**
+   * Optional vendor simulation payload.
+   * Retained so existing callers that read this field keep compiling.
+   * The local runtime no longer fills it.
+   */
   goplus?: {
     simulation?: {
       success: boolean;

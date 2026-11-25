@@ -84,13 +84,13 @@ async function main() {
 
   program
     .name('agentguard')
-    .description('Local-first security guard for AI agents, with optional AgentGuard Cloud control plane')
+    .description('Local guard for AI agents, with optional Cloud policy cache and redacted audit sync')
     .version(packageVersion);
 
   program
     .command('init')
     .description('Create ~/.agentguard/config.json and local runtime paths')
-    .option('--level <level>', 'Protection level: strict | balanced | permissive')
+    .option('--level <level>', 'Protection level: Strict (strict), Balanced (balanced, default), or Observe (permissive in the CLI)')
     .option('--agent <agent>', 'Install integration for auto, claude-code, codex, openclaw, hermes, qclaw, or dsh (default: auto)')
     .option('--profile <name>', 'DSH profile (overrides AGENTGUARD_DSH_PROFILE)')
     .option('--cloud <url>', 'AgentGuard Cloud URL to store in local config')
@@ -529,7 +529,7 @@ async function main() {
 
   program
     .command('scan')
-    .description('Scan a local skill/plugin directory or HTTPS GitHub repository')
+    .description('AgentGuard DeepScan: a local directory or an HTTPS GitHub repository')
     .argument('<repo-or-path>', 'Local directory or https://github.com/owner/repo URL')
     .option('--ref <ref>', 'GitHub branch, tag, fully qualified ref, or full commit SHA')
     .option('--json', 'Print JSON output')
@@ -1738,7 +1738,7 @@ async function runLocalHealthCheckup(config: AgentGuardConfig): Promise<HealthCh
     [...auditFindings, ...configurationFindings],
     'runtime, audit, and configuration',
   );
-  const web3 = checkWeb3Safety(skillDirs);
+  const web3 = checkWeb3Safety();
 
   const dimensions = {
     code_safety: {
@@ -2444,7 +2444,7 @@ function checkAuditLogSafety(auditPath: string): CheckupFinding[] {
 
 function checkEnvironmentConfiguration(config: AgentGuardConfig): CheckupFinding[] {
   const findings: CheckupFinding[] = [];
-  const expectedCredentialVariables = new Set(['GOPLUS_API_KEY', 'GOPLUS_API_SECRET', 'AGENTGUARD_API_KEY']);
+  const expectedCredentialVariables = new Set(['AGENTGUARD_API_KEY']);
   const sensitiveEnvNames = Object.keys(process.env)
     .filter((name) => /API_KEY|SECRET|PASSWORD|TOKEN|PRIVATE|CREDENTIAL/i.test(name))
     .filter((name) => !expectedCredentialVariables.has(name))
@@ -2609,23 +2609,9 @@ function checkRuntimeProtection(config: AgentGuardConfig, skillsScanned: number)
   };
 }
 
-function checkWeb3Safety(skillDirs: string[]): CheckupDimension {
-  const web3Detected = ['GOPLUS_API_KEY', 'CHAIN_ID', 'RPC_URL'].some((name) => process.env[name]) ||
-    skillDirs.some((dir) => /web3|wallet|chain|defi|token/i.test(dir));
-  if (!web3Detected) {
-    return { score: null, na: true, findings: [], details: 'No Web3 usage detected.' };
-  }
-
-  const findings: CheckupFinding[] = [];
-  let score = process.env.GOPLUS_API_KEY ? 100 : 70;
-  if (!process.env.GOPLUS_API_KEY) {
-    findings.push(patrolFinding(7, 'MEDIUM', 'Web3 usage detected but GOPLUS_API_KEY is not configured for transaction checks.'));
-  }
-  return {
-    score,
-    findings,
-    details: findings.length ? 'Web3 usage detected with missing transaction security configuration.' : 'Web3 safety configuration is present.',
-  };
+function checkWeb3Safety(): CheckupDimension {
+  // The report schema still includes this dimension. It is always not applicable.
+  return { score: null, na: true, findings: [], details: 'Not applicable.' };
 }
 
 function permissionMode(path: string): number | null {

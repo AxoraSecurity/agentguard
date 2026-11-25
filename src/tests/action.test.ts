@@ -3,7 +3,61 @@ import assert from 'node:assert/strict';
 import { ActionScanner } from '../action/index.js';
 import { analyzeExecCommand } from '../action/detectors/exec.js';
 import { analyzeNetworkRequest } from '../action/detectors/network.js';
-import type { NetworkRequestData } from '../types/action.js';
+import type { ActionEnvelope, NetworkRequestData } from '../types/action.js';
+
+describe('Legacy transaction and signature policy', () => {
+  const makeEnvelope = (action: ActionEnvelope['action'], userPresent: boolean): ActionEnvelope => ({
+    actor: {
+      skill: { id: 'local-agent', source: 'test', version_ref: 'runtime', artifact_hash: '' },
+    },
+    action,
+    context: {
+      session_id: 'sess_legacy_action',
+      user_present: userPresent,
+      env: 'test',
+      time: new Date(0).toISOString(),
+    },
+  });
+
+  it('requires approval for an unverified transaction and denies it without a user', async () => {
+    const scanner = new ActionScanner();
+    const action: ActionEnvelope['action'] = {
+      type: 'web3_tx',
+      data: { chain_id: 1, from: '0x1', to: '0x2', value: '1' },
+    };
+    const present = await scanner.decide(makeEnvelope(action, true));
+    assert.equal(present.decision, 'confirm');
+    assert.equal(present.risk_level, 'medium');
+    assert.ok(present.risk_tags.includes('TRANSACTION_UNVERIFIED'));
+
+    const absent = await scanner.decide(makeEnvelope(action, false));
+    assert.equal(absent.decision, 'deny');
+  });
+
+  it('keeps an explicit transaction deny policy', async () => {
+    const scanner = new ActionScanner({
+      defaultCapabilities: {
+        network_allowlist: [], filesystem_allowlist: [], exec: 'deny', secrets_allowlist: [],
+        web3: { chains_allowlist: [1], rpc_allowlist: [], tx_policy: 'deny' },
+      },
+    });
+    const result = await scanner.decide(makeEnvelope({
+      type: 'web3_tx', data: { chain_id: 1, from: '0x1', to: '0x2', value: '1' },
+    }, true));
+    assert.equal(result.decision, 'deny');
+  });
+
+  it('requires approval for an unverified signature and denies it without a user', async () => {
+    const scanner = new ActionScanner();
+    const action: ActionEnvelope['action'] = {
+      type: 'web3_sign', data: { chain_id: 1, signer: '0x1', message: 'hello' },
+    };
+    const present = await scanner.decide(makeEnvelope(action, true));
+    assert.equal(present.decision, 'confirm');
+    assert.ok(present.risk_tags.includes('SIGNATURE_UNVERIFIED'));
+    assert.equal((await scanner.decide(makeEnvelope(action, false))).decision, 'deny');
+  });
+});
 
 describe('Exec Command Detector', () => {
   it('should block rm -rf as dangerous', () => {

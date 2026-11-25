@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@axorasec/agentguard": "^1.2.5",
+    "@axorasec/agentguard": "^1.2.6",
     "open": "11.0.0"
   }
 }

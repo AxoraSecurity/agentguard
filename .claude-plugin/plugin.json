@@ -1,7 +1,7 @@
 {
   "name": "agentguard",
-  "version": "1.2.4",
-  "description": "Axora AgentGuard — AI agent security guard. Blocks dangerous commands, prevents data leaks, protects secrets. 20 detection rules, runtime action evaluation, trust registry.",
+  "version": "1.2.6",
+  "description": "Axora AgentGuard. Local guard for AI agents: AgentGuard DeepScan, runtime evaluation, patrol, checkup, and a local audit log.",
   "author": {
     "name": "Axora Security",
     "url": "https://github.com/AxoraSecurity"
@@ -9,5 +9,5 @@
   "homepage": "https://github.com/AxoraSecurity/agentguard",
   "repository": "https://github.com/AxoraSecurity/agentguard",
   "license": "MIT",
-  "keywords": ["security", "agent-protection", "web3", "claude-code", "scanner", "trust-registry"]
+  "keywords": ["security", "agent-protection", "claude-code", "scanner", "trust-registry"]
 }

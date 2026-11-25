@@ -4,8 +4,8 @@
   "display_name": "Axora AgentGuard",
   "version": "1.2.6",
   "icon": "icon.png",
-  "description": "Security guard for AI agents — blocks malicious skills, prevents data leaks, protects secrets.",
-  "long_description": "Axora AgentGuard is an AI-agent security framework. It exposes MCP tools for scanning skills, looking up and managing a trust registry, evaluating runtime actions against policy, and simulating Web3 transactions. 20+ detection rules cover dangerous commands, secret exfiltration, and risky on-chain actions.",
+  "description": "Local guard for AI agents: AgentGuard DeepScan, runtime evaluation, and a local audit log.",
+  "long_description": "Axora AgentGuard is the local guard for AI agents. It scans components with AgentGuard DeepScan, evaluates runtime actions, and keeps a local audit log. An action decision is allow, require approval, or block.",
   "author": {
     "name": "Axora Security",
     "url": "https://github.com/AxoraSecurity"
@@ -19,7 +19,7 @@
     "url": "https://github.com/AxoraSecurity/agentguard"
   },
   "license": "MIT",
-  "keywords": ["security", "ai-agent", "web3", "scanner", "trust-registry", "mcp"],
+  "keywords": ["security", "ai-agent", "scanner", "trust-registry", "mcp"],
   "server": {
     "type": "node",
     "entry_point": "server/dist/mcp-server.js",
@@ -34,8 +34,7 @@
     { "name": "registry_attest", "description": "Attest a skill/package as trusted in the local registry." },
     { "name": "registry_revoke", "description": "Revoke a prior attestation from the registry." },
     { "name": "registry_list", "description": "List entries in the local trust registry." },
-    { "name": "action_scanner_decide", "description": "Evaluate a proposed runtime action against policy and return allow/deny." },
-    { "name": "action_scanner_simulate_web3", "description": "Simulate a Web3 transaction to surface risks before signing." }
+    { "name": "action_scanner_decide", "description": "Evaluate a proposed runtime action against policy and return allow, require approval, or block." }
   ],
   "compatibility": {
     "claude_desktop": ">=0.10.0",

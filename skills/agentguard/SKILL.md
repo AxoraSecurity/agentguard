@@ -1,12 +1,11 @@
 ---
 name: agentguard
-description: Axora AgentGuard — AI agent security guard. Run /agentguard checkup for a full security health check, scans all installed skills, checks credentials, permissions, and network exposure, then delivers an HTML report directly to you. Also use for scanning third-party code, blocking dangerous commands, preventing data leaks, evaluating action safety, and running daily security patrols.
+description: "Axora AgentGuard. Local guard for AI agents: AgentGuard DeepScan, runtime evaluation, patrol, checkup, and a local audit log."
 license: MIT
-compatibility: Requires Node.js 18+. Optional GoPlus API credentials for enhanced Web3 simulation.
+compatibility: Requires Node.js 18+.
 metadata:
   author: AxoraSecurity
   version: "1.1"
-  optional_env: "GOPLUS_API_KEY, GOPLUS_API_SECRET (for Web3 transaction simulation only)"
 filesystem-access:
   - path: "~/.ssh/"
     access: read-only
@@ -78,7 +77,7 @@ Parse `$ARGUMENTS` to determine the subcommand:
 - **`trust <lookup|attest|revoke|list|seed> [args]`** — Manage skill trust levels
 - **`subscribe [args...]`** — Pull AgentGuard Cloud threat-feed advisories, self-check local skills, and optionally install the OpenClaw 15-minute conditional notification cron
 - **`report`** — View recent security events from the audit log
-- **`config <strict|balanced|permissive>`** — Set protection level
+- **`config <strict|balanced|permissive>`** — Set protection level: Observe (`permissive` in the CLI), Balanced (`balanced`, default), or Strict (`strict`)
 - **`checkup`** — Run a comprehensive agent health checkup and generate a visual HTML report
 - **`hermes-hooks`** — Show or install Hermes shell-hook configuration for runtime protection
 - **`cli <args...>`** — Run the installed `agentguard` CLI directly for supported commands not otherwise routed by this skill
@@ -290,7 +289,7 @@ Suppressed findings are **excluded from the findings table and risk level calcul
 
 ### File Discovery
 
-Use Glob to find all scannable files at the given path. Include: `*.js`, `*.ts`, `*.jsx`, `*.tsx`, `*.mjs`, `*.cjs`, `*.py`, `*.json`, `*.yaml`, `*.yml`, `*.toml`, `*.sol`, `*.sh`, `*.bash`, `*.md`
+Use Glob to find all scannable files at the given path. Include: `*.js`, `*.ts`, `*.jsx`, `*.tsx`, `*.mjs`, `*.cjs`, `*.py`, `*.json`, `*.yaml`, `*.yml`, `*.toml`, `*.sh`, `*.bash`, `*.md`
 
 **Markdown scanning**: For `.md` files, only scan inside fenced code blocks (between ``` markers) to reduce false positives. Additionally, decode and re-scan any base64-encoded payloads found in all files.
 
@@ -310,15 +309,7 @@ For each rule, use Grep to search the relevant file types. Record every match wi
 | 5 | READ_SSH_KEYS | CRITICAL | all | SSH key file access |
 | 6 | READ_KEYCHAIN | CRITICAL | all | System keychain / browser profiles |
 | 7 | PRIVATE_KEY_PATTERN | CRITICAL* | all | Hardcoded private keys |
-| 8 | MNEMONIC_PATTERN | CRITICAL* | all | Hardcoded mnemonic phrases |
-| 9 | WALLET_DRAINING | CRITICAL | js,ts,sol | Approve + transferFrom patterns |
-| 10 | UNLIMITED_APPROVAL | HIGH | js,ts,sol | Unlimited token approvals |
-| 11 | DANGEROUS_SELFDESTRUCT | HIGH | sol | selfdestruct in contracts |
-| 12 | HIDDEN_TRANSFER | MEDIUM | sol | Non-standard transfer implementations |
-| 13 | PROXY_UPGRADE | MEDIUM | sol,js,ts | Proxy upgrade patterns |
-| 14 | FLASH_LOAN_RISK | MEDIUM | sol,js,ts | Flash loan usage |
-| 15 | REENTRANCY_PATTERN | HIGH | sol | External call before state change |
-| 16 | SIGNATURE_REPLAY | HIGH | sol | ecrecover without nonce |
+| 8 | MNEMONIC_PATTERN | CRITICAL* | all | Hardcoded recovery phrases |
 | 17 | OBFUSCATION | HIGH | js,ts,mjs,py,md | Code obfuscation techniques |
 | 18 | PROMPT_INJECTION | CRITICAL | all | Prompt injection attempts |
 | 19 | NET_EXFIL_UNRESTRICTED | HIGH | js,ts,mjs,py,md | Unrestricted POST / upload |
@@ -450,9 +441,7 @@ Evaluate whether a proposed runtime action should be allowed, denied, or require
 - `network_request` — HTTP/HTTPS requests
 - `exec_command` — Shell command execution
 - `read_file` / `write_file` — File system operations
-- `secret_access` — Environment variable access
-- `web3_tx` — Blockchain transactions
-- `web3_sign` — Message signing
+- `secret_access` — Environment variable and credential access
 
 ### Decision Framework
 
@@ -460,54 +449,36 @@ Parse the user's action description and apply the appropriate detector:
 
 **Network Requests**: Check domain against webhook list and high-risk TLDs, check body for secrets
 **Command Execution**: Check against dangerous/sensitive/system/network command lists, detect shell injection
+**File Access**: Check sensitive paths, path traversal, and credential files
 **Secret Access**: Classify secret type and apply priority-based risk levels
-**Web3 Transactions**: Check for unlimited approvals, unknown spenders, user presence
 
 ### Default Policies
 
 | Scenario | Decision |
 |----------|----------|
 | Private key exfiltration | **DENY** (always) |
-| Mnemonic exfiltration | **DENY** (always) |
+| Recovery phrase exfiltration | **DENY** (always) |
 | API secret exfiltration | CONFIRM |
 | Command execution | **DENY** (default) |
-| Unlimited approval | CONFIRM |
-| Unknown spender | CONFIRM |
+| Sensitive file read or write | CONFIRM |
 | Untrusted domain | CONFIRM |
 | Body contains secret | **DENY** |
 
-### Web3 Enhanced Detection
+### Scripted Evaluation
 
-When the action involves **web3_tx** or **web3_sign**, use AgentGuard's bundled `action-cli.js` script (in this skill's `scripts/` directory) to invoke the ActionScanner. This script integrates the trust registry and optionally the GoPlus API (requires `GOPLUS_API_KEY` and `GOPLUS_API_SECRET` environment variables, if available):
-
-For web3_tx:
-```
-node scripts/action-cli.js decide --type web3_tx --chain-id <id> --from <addr> --to <addr> --value <wei> [--data <calldata>] [--origin <url>] [--user-present]
-```
-
-For web3_sign:
-```
-node scripts/action-cli.js decide --type web3_sign --chain-id <id> --signer <addr> [--message <msg>] [--typed-data <json>] [--origin <url>] [--user-present]
-```
-
-For standalone transaction simulation:
-```
-node scripts/action-cli.js simulate --chain-id <id> --from <addr> --to <addr> --value <wei> [--data <calldata>] [--origin <url>]
-```
-
-The `decide` command also works for non-Web3 actions (exec_command, network_request, etc.) and automatically resolves the skill's trust level and capabilities from the registry:
+Use AgentGuard's bundled `action-cli.js` script (in this skill's `scripts/` directory) to invoke the ActionScanner. The script resolves the skill's trust level and capabilities from the registry:
 
 ```
 node scripts/action-cli.js decide --type exec_command --command "<cmd>" [--skill-source <source>] [--skill-id <id>]
+node scripts/action-cli.js decide --type secret_access --secret-name "<NAME>" --access-type read
+node scripts/action-cli.js decide --type read_file --path "<filepath>"
 ```
 
 Parse the JSON output and incorporate findings into your evaluation:
 - If `decision` is `deny` → override to **DENY** with the returned evidence
-- If `goplus.address_risk.is_malicious` → **DENY** (critical)
-- If `goplus.simulation.approval_changes` has `is_unlimited: true` → **CONFIRM** (high)
-- If GoPlus is unavailable (`SIMULATION_UNAVAILABLE` tag) → fall back to prompt-based rules and note the limitation
+- If `decision` is `confirm` → require user approval
 
-Always combine script results with the policy-based checks (webhook domains, secret scanning, etc.) — the script enhances but does not replace rule-based evaluation.
+Always combine script results with the policy-based checks (webhook domains, secret scanning, file paths) — the script enhances but does not replace rule-based evaluation.
 
 ### Output Format
 
@@ -644,9 +615,8 @@ Verify security configuration is production-appropriate.
 
 **Steps**:
 1. List environment variables matching sensitive names (values masked): `API_KEY`, `SECRET`, `PASSWORD`, `TOKEN`, `PRIVATE`, `CREDENTIAL`
-2. Check if `GOPLUS_API_KEY`/`GOPLUS_API_SECRET` are configured (if Web3 features are in use)
-3. Read `~/.agentguard/config.json` — flag `permissive` protection level in production
-4. If `<openclaw-root>/.config-baseline.sha256` exists, verify it with `sha256sum -c`
+2. Read `~/.agentguard/config.json` — flag `permissive` protection level in production
+3. If `<openclaw-root>/.config-baseline.sha256` exists, verify it with `sha256sum -c`
 
 #### [8] Trust Registry Health
 
@@ -840,9 +810,6 @@ network_allowlist: string[]     — Allowed domains (supports *.example.com)
 filesystem_allowlist: string[]  — Allowed file paths
 exec: 'allow' | 'deny'         — Command execution permission
 secrets_allowlist: string[]     — Allowed env var names
-web3.chains_allowlist: number[] — Allowed chain IDs
-web3.rpc_allowlist: string[]    — Allowed RPC endpoints
-web3.tx_policy: 'allow' | 'confirm_high_risk' | 'deny'
 ```
 
 ### Presets
@@ -851,8 +818,6 @@ web3.tx_policy: 'allow' | 'confirm_high_risk' | 'deny'
 |--------|-------------|
 | `none` | All deny, empty allowlists |
 | `read_only` | Local filesystem read-only |
-| `trading_bot` | Exchange APIs (Binance, Bybit, OKX, Coinbase), Web3 chains 1/56/137/42161 |
-| `defi` | All network, multi-chain DeFi (1/56/137/42161/10/8453/43114), no exec |
 
 ### Operations
 
@@ -901,7 +866,7 @@ If the lookup returns a record with `status: active`, the skill is already regis
 
 **Step 3 — Scan unregistered skills**
 
-For each unregistered skill, run the full scan (24 detection rules, same as `/agentguard scan <skill_path>`). Record: skill name, skill path, risk level (LOW/MEDIUM/HIGH/CRITICAL), finding count.
+For each unregistered skill, run AgentGuard DeepScan (`/agentguard scan <skill_path>`). Record: skill name, skill path, risk level (LOW/MEDIUM/HIGH/CRITICAL), finding count.
 
 **Step 4 — Build preview table**
 
@@ -1109,7 +1074,7 @@ Run these checks in parallel where possible. These are **universal agent securit
    - `~/.qclaw/skills/*/SKILL.md`
    - `~/.qclaw/workspace/skills/*/SKILL.md`
 
-   For **every** discovered skill, **run `/agentguard scan <skill_path>`** using the scan subcommand logic (24 detection rules). Do NOT skip any skill regardless of how many are found. Record for each skill: name, risk_level, and exact findings list (rule, severity, file, line).
+   For **every** discovered skill, run AgentGuard DeepScan (`/agentguard scan <skill_path>`). Do NOT skip any skill regardless of how many are found. Record for each skill: name, risk_level, and exact findings list (rule, severity, file, line).
 
    Also discover installed DSH plugins under the resolved DSH home: use the non-empty `DSH_HOME` value when set, otherwise use the current user's real home directory plus `.dsh` (do not pass a literal unexpanded `~` to path APIs). Inspect `${dshHome}/profiles/*`; read each immediate profile's `package.json`, collect only names declared in `dependencies` and `optionalDependencies`, and resolve their existing directories beneath that same profile's `node_modules/`. For a dependency that declares `dsh.bundle.patch`, parse its Cordis patch and recursively resolve only package dependencies actually named by plugin rows in that patch; repeat for referenced child bundles, with path deduplication, cycle detection, and a bounded depth. Do not enumerate or scan unrelated transitive dependencies. Exclude only the exact `@axorasec/agentguard` dependency coordinate declared by the profile or referenced by a bundle; never trust an installed plugin's self-reported package name for this exclusion. For **every** discovered direct or bundle-referenced plugin, run `agentguard dsh-scan <plugin_path> --format json` and record its name, path, `riskLevel`, and exact findings list (`ruleId`, severity, file, line), normalized to the raw-facts schema below. A failed DSH plugin scan must not prevent the remaining checks from completing; record it in `dsh_plugins` with `risk_level: "high"` and one finding `{ "rule": "DSH_SCAN_FAILED", "severity": "HIGH", "file": "<plugin_path>", "line": 0 }`.
 2. **[REQUIRED] Credential file permissions** (→ feeds Dimension 2: Credential Safety): Platform-aware check — behavior differs by OS:
@@ -1178,17 +1143,9 @@ After completing all 7 checks, assemble the raw facts into a structured JSON and
     "hooks_installed":     <bool>,
     "audit_log_exists":    <bool>,
     "skills_ever_scanned": <bool>
-  },
-  "web3": {
-    "detected":                 <bool>,
-    "wallet_draining_found":    <bool>,
-    "unlimited_approval_found": <bool>,
-    "goplus_configured":        <bool>
   }
 }
 ```
-
-**Web3 detection**: set `detected: true` if any of these are present: env vars `GOPLUS_API_KEY`, `CHAIN_ID`, or `RPC_URL`; or any skill with web3-related findings (WALLET_DRAINING, UNLIMITED_APPROVAL).
 
 **Pre-Step-3 validation** — verify all fields are populated before proceeding:
 - [ ] `skills` — from check 1
@@ -1197,7 +1154,6 @@ After completing all 7 checks, assemble the raw facts into a structured JSON and
 - [ ] `dlp` — from check 3
 - [ ] `network` — from checks 4, 5, 6
 - [ ] `runtime` — from check 7
-- [ ] `web3` — detected flag + fields
 
 **If any field is missing, go back and run the missing check. Do NOT proceed with incomplete data.**
 
@@ -1213,7 +1169,7 @@ The script outputs a JSON object with:
 - `composite_score` (0–100)
 - `tier` (S/A/B/F) and `tier_label`
 - `total_findings`
-- `dimensions`: `code_safety`, `credential_safety`, `network_exposure`, `runtime_protection`, `web3_safety` — each with `score` and `findings[]`
+- `dimensions`: `code_safety`, `credential_safety`, `network_exposure`, `runtime_protection` — each with `score` and `findings[]`
 
 Capture this JSON output — you will use it in Step 4.
 
@@ -1245,8 +1201,7 @@ Assemble the final JSON by merging the scored output from Step 3 with the analys
     "code_safety":        { "score": <from score>, "findings": [...], "details": "<one-line summary>" },
     "credential_safety":  { "score": <from score>, "findings": [...], "details": "<one-line summary>" },
     "network_exposure":   { "score": <from score>, "findings": [...], "details": "<one-line summary>" },
-    "runtime_protection": { "score": <from score>, "findings": [...], "details": "<one-line summary>" },
-    "web3_safety":        { "score": <from score|null>, "na": <bool>, "findings": [...], "details": "<one-line summary>" }
+    "runtime_protection": { "score": <from score>, "findings": [...], "details": "<one-line summary>" }
   },
   "skills_scanned": <count of skills from Step 1>,
   "dsh_plugins_scanned": <count of successfully scanned DSH plugins from Step 1>,
@@ -1301,7 +1256,6 @@ The script outputs the HTML file path to stdout (e.g. `/tmp/agentguard-checkup-1
 | 🤝 Trust Hygiene | <n>/100 | <status> |
 | 🛡️ Runtime Defense | <n>/100 | <status> |
 | 🔐 Secret Protection | <n>/100 | <status> |
-| ⛓️ Web3 Shield | <n>/100 or N/A | <status> |
 | ⚙️ Config Posture | <n>/100 | <status> |
 
 **Full visual report**: <path> (opened in browser)
