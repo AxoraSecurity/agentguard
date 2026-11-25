@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.2.7] - Unreleased
+
+### Changed
+- Updated the README, security documentation, configuration guidance, examples, and Axora AgentGuard brand assets. Clarified the `allow`, `confirm`, and `deny` values returned by the action evaluation API.
+- Removed the legacy remote simulation client and MCP simulation tool, along with the unused HTTP client dependency. Compatibility fields remain available to existing TypeScript callers.
+- Unverified transaction and signature actions now require user confirmation, or are denied when no user is present.
+
+### Fixed
+- Aligned the vulnerable skill demo documentation with the scanner's actual findings and added regression coverage for the documented results.
+- Kept automated pull request review comments brand neutral and removed stale review comments when a rerun finds no issues.
+
+## [1.2.6] - 2026-11-11
+
+### Fixed
+- DSH initialization now installs AgentGuard into the selected profile. Use `--profile <name>` or `AGENTGUARD_DSH_PROFILE` when more than one profile is available.
+- `agentguard status` now verifies that the bundle is installed in the saved DSH profile and reports when the integration needs repair.
+
 ## [1.2.5] - 2026-11-09
 
 ### Changed
