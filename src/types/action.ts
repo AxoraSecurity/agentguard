@@ -210,29 +210,6 @@ export interface Web3SimulationResult {
   risk_tags: string[];
   /** Human-readable explanation */
   explanation: string;
-  /**
-   * Optional vendor simulation payload.
-   * Retained so existing callers that read this field keep compiling.
-   * The local runtime no longer fills it.
-   */
-  goplus?: {
-    simulation?: {
-      success: boolean;
-      balance_changes: AssetChange[];
-      approval_changes: ApprovalChange[];
-    };
-    address_risk?: {
-      is_malicious: boolean;
-      is_phishing: boolean;
-      risk_type?: string[];
-    };
-    token_risk?: {
-      is_honeypot: boolean;
-      has_hidden_tax: boolean;
-      buy_tax?: string;
-      sell_tax?: string;
-    };
-  };
   /** Guardrail recommendations */
   guardrail?: {
     require_user_confirmation: boolean;

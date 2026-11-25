@@ -1785,7 +1785,7 @@ function isManagedAgentGuardSkillDir(dir: string): boolean {
     return false;
   }
   const hasAgentGuardIdentity = /^name:\s*agentguard\s*$/im.test(body) &&
-    /(?:Axora|GoPlus) AgentGuard|(?:Axora|GoPlus)Security/i.test(body);
+    /\bAgentGuard\b/i.test(body);
   if (!hasAgentGuardIdentity) return false;
   const expectedScripts = [
     join(dir, 'scripts', 'guard-hook.js'),

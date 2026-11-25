@@ -76,7 +76,8 @@ jobs:
           Report only findings supported by changed hunks. Do not infer that an entire
           detection capability is gone solely because one integration was removed.
           Public review comments must use neutral capability descriptions. Do not
-          mention GoPlus or Web3, including in quoted paths, identifiers, or examples.
+          mention former vendor names or ecosystem labels, including in quoted
+          paths, identifiers, or examples.
           Refer to neutral changed paths when a file reference is needed.
           Do not comment on style, naming, formatting, or speculative improvements.
           If there are no actionable problems, respond exactly with:
@@ -146,15 +147,17 @@ jobs:
             ).trim();
           }
 
+          const restrictedPublicTerms = /go[ -]?plus|web3/i;
+
           async function main() {
             const prompt = fs.readFileSync('/tmp/review-prompt.md', 'utf8');
             let review = (await generateReview(prompt)) || 'NO_FINDINGS';
-            if (/goplus|web3/i.test(review)) {
+            if (restrictedPublicTerms.test(review)) {
               const original = review;
               review = await generateReview([
                 'Rewrite this PR review for public posting. Preserve every finding,',
                 'its severity, risk, and fix. Use neutral capability descriptions.',
-                'Do not include GoPlus or Web3, even in paths or identifiers.',
+                'Do not include former vendor names or ecosystem labels, even in paths or identifiers.',
                 'Use existing neutral changed paths where possible; otherwise',
                 'describe a deleted file by its role without inventing a path.',
                 'Return only the revised Markdown review, not a summary.',
@@ -167,7 +170,7 @@ jobs:
               }
             }
 
-            if (/goplus|web3/i.test(review)) {
+            if (restrictedPublicTerms.test(review)) {
               console.error('Automated review contains restricted public terminology; refusing to post it.');
               process.exit(1);
             }
