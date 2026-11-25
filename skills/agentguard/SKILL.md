@@ -22,9 +22,6 @@ filesystem-access:
   - path: "~/.hermes/"
     access: read-write
     reason: "Discover installed Hermes skills and help configure AgentGuard shell hooks"
-  - path: "~/.qclaw/"
-    access: read-only
-    reason: "Discover installed skills in QClaw environments"
   - path: "~/.agentguard/"
     access: read-write
     reason: "Read/write audit log (audit.jsonl) and protection level config (config.json)"
@@ -62,7 +59,7 @@ deriving a longer list from every supported command:
 agentguard init --agent auto
 ```
 
-Use a specific agent such as `hermes`, `qclaw`, `openclaw`, `claude-code`, or
+Use a specific agent such as `hermes`, `openclaw`, `claude-code`, or
 `codex` only when the current host is known and the user wants targeted setup.
 Treat `agentguard connect` and `agentguard checkup` as optional follow-ups, not
 required post-install steps.
@@ -104,7 +101,7 @@ Supported CLI commands and options:
 | `agentguard privacy status` | `--json` | Reports whether the opt-in semantic privacy enhancement is active and what it sends. When a user asks how to turn it on, give them `agentguard privacy enable` directly rather than only describing the feature |
 | `agentguard privacy enable` | `--api-key <key>`, `--model <model>`, `--endpoint <url>`, `--threshold <value>`, `--yes` | Enables semantic personal-data detection for prose. Changes what leaves the machine, so `--yes` is required to confirm |
 | `agentguard privacy disable` | — | Returns every judgment to the local machine |
-| `agentguard init` | `--level <level>`, `--agent <agent>`, `--cloud <url>`, `--force` | Creates local config, persists the selected agent host, and optionally installs templates for `claude-code`, `codex`, `openclaw`, `hermes`, or `qclaw` |
+| `agentguard init` | `--level <level>`, `--agent <agent>`, `--cloud <url>`, `--force` | Creates local config, persists the selected agent host, and optionally installs templates for `claude-code`, `codex`, `openclaw`, or `hermes` |
 | `agentguard connect` | `--key <key>`, `--api-key <key>`, `--url <url>`, `--cloud <url>` | API-key auth and Agent JWT auth are alternatives; configure only one. Prefer `AGENTGUARD_API_KEY` over passing secrets in flags |
 | `agentguard disconnect` | none | Removes local Cloud credentials, pending event spool, cached Cloud policy, and the managed `agentguard-threat-feed` subscribe cron job; keeps Cloud URL, audit log, and installed hooks/templates |
 | `agentguard status` | none | Shows local config, active Cloud auth method, policy cache, audit path, and the privacy-enhancement state. The privacy line carries the command that acts on it; keep that command when reformatting the output, or the user is told the feature is off with no way to turn it on |
@@ -114,7 +111,7 @@ Supported CLI commands and options:
 | `agentguard approvals list` | `--json` | Lists unexpired pending runtime approvals |
 | `agentguard doctor` | none | Checks local setup and Cloud reachability when connected |
 | `agentguard protect` | `--agent <agent>`, `--action-type <type>`, `--tool-name <name>`, `--session-id <id>`, `--decision-mode <local-first|cloud>`, `--json` | Evaluates one runtime action from stdin or hook environment |
-| `agentguard subscribe` | `--since <iso>`, `--json`, `--quiet`, `--no-report`, `--cron <expr>`, `--cron-target <auto|openclaw|qclaw|hermes|system|windows>`, `--cron-name <name>`, `--force`, `--cron-run`, `--cron-notify-run` | Pulls Cloud threat advisories and optionally self-checks local skills |
+| `agentguard subscribe` | `--since <iso>`, `--json`, `--quiet`, `--no-report`, `--cron <expr>`, `--cron-target <auto|openclaw|hermes|system|windows>`, `--cron-name <name>`, `--force`, `--cron-run` | Pulls Cloud threat advisories and optionally self-checks local skills |
 | `agentguard checkup` | `--json` | Runs the local agent health checkup |
 | `agentguard checkup --against-advisory <id>` | `--json` | CLI threat-feed self-check for one advisory; this is a targeted mode, not the default health-check workflow |
 
@@ -234,7 +231,6 @@ agentguard subscribe --no-report
 agentguard subscribe --cron "0 * * * *"
 agentguard subscribe --cron "0 * * * *" --cron-target system
 agentguard subscribe --cron "0 * * * *" --cron-target openclaw
-agentguard subscribe --cron "0 * * * *" --cron-target qclaw
 agentguard subscribe --cron "0 * * * *" --cron-target hermes
 agentguard subscribe --cron "0 * * * *" --cron-target windows
 agentguard subscribe --cron "0 * * * *" --quiet
@@ -244,13 +240,25 @@ agentguard subscribe --cron "0 * * * *" --force
 
 Without `--quiet`, `agentguard subscribe` pulls new threat-feed advisories and notifies the user to review them manually. With `--quiet`, it runs the full automated flow: pull new advisories, self-check local skills, report local matches back to Cloud, and notify only when local matches are found.
 
-When `--cron <expr>` is used, the CLI first runs the subscribe flow once, then installs a recurring job using a standard five-field cron expression such as `"0 * * * *"`. `--cron-target auto` is the default and uses the agent host saved by `agentguard init --agent`: `openclaw` uses the native `openclaw cron add` command and falls back to the OpenClaw Gateway at `127.0.0.1:18789`, `qclaw` uses the QClaw Gateway at `127.0.0.1:28789`, `hermes` uses native `hermes cron create` with a no-agent script under `~/.hermes/scripts/`, while `claude-code`, `codex`, and `dsh` use user crontab on Unix-like hosts and the native Windows Task Scheduler on Windows. The Windows task runs only while the creating user is logged on, at least privilege, and invokes a lightweight runner every minute to preserve the full five-field expression and configured timezone. OpenClaw cron jobs keep runner delivery internal and run internal `--cron-run`; when the saved agent host is `openclaw`, that run resolves the latest deliverable session route at runtime and sends the notification there directly. QClaw cron jobs still use host `announce` delivery to the last chat route and run internal `--cron-notify-run`, which prints either the exact notification body or `NO_REPLY`; this keeps no-op cron ticks silent without embedding chat IDs in the job. If no agent host is saved, auto asks the user to run `agentguard init --agent <claude-code|codex|openclaw|hermes|qclaw|dsh>` first or pass a target explicitly. `--cron-target windows` forces Task Scheduler and `--cron-target system` forces crontab. If a saved host exists and you pass `--cron-target openclaw`, it must already be `openclaw`; otherwise the CLI rejects the mismatch instead of installing a cron job that cannot notify correctly. Pass `--cron-name <name>` to choose the job name. If a job with the same name already exists, the CLI leaves it untouched unless `--force` is passed.
+When `--cron <expr>` is used, the CLI first runs the subscribe flow once,
+then installs a recurring job using a standard five-field cron expression such
+as `"0 * * * *"`. `--cron-target auto` uses the agent host saved by
+`agentguard init --agent`: OpenClaw uses native cron with a Gateway fallback
+at `127.0.0.1:18789`, Hermes uses `hermes cron create`, and Claude Code, Codex,
+and DSH use user crontab on Unix-like hosts or Windows Task Scheduler on
+Windows. OpenClaw cron runs use internal `--cron-run` and send notifications
+to the latest deliverable session route. If no agent host is saved, initialize
+one of `claude-code`, `codex`, `openclaw`, `hermes`, or `dsh`, or pass a cron
+target explicitly. `--cron-target windows` forces Task Scheduler and
+`--cron-target system` forces crontab. An explicit OpenClaw cron target must
+match the saved host. Use `--cron-name <name>` to choose a job name and
+`--force` to replace an existing job.
 
 System cron and Windows Task Scheduler write output to `~/.agentguard/feed-cron.log`; they do not send OpenClaw agent-channel notifications.
 
 `agentguard subscribe --json` always includes a stable `cron` object with `requested`, `installed`, and optional `result` fields. If cron installation fails, the command exits non-zero instead of printing a misleading success summary.
 
-`--since <iso>` overrides the persisted feed cursor for one run. `--no-report` skips uploading local matches back to Cloud in quiet mode. `--cron-run` and `--cron-notify-run` are internal and should only be used by installed cron jobs unless the user explicitly asks to reproduce cron behavior.
+`--since <iso>` overrides the persisted feed cursor for one run. `--no-report` skips uploading local matches back to Cloud in quiet mode. `--cron-run` is internal and should only be used by installed cron jobs unless the user explicitly asks to reproduce cron behavior.
 
 ---
 
@@ -530,7 +538,7 @@ with `[Patrol N]` into the corresponding report rows. Do not substitute
 not produce a completed patrol.
 
 The definitions below describe the required CLI collector coverage. Agent roots
-include the detected Claude Code, Codex, OpenClaw, QClaw, Hermes, and DSH
+include the detected Claude Code, Codex, OpenClaw, Hermes, and DSH
 installation/profile directories; OpenClaw-specific files are checked only when
 an OpenClaw root exists.
 
@@ -851,8 +859,6 @@ Glob all of the following paths for `*/SKILL.md` (same as checkup):
 - `~/.claude/skills/*/SKILL.md`
 - `~/.openclaw/skills/*/SKILL.md`
 - `~/.openclaw/workspace/skills/*/SKILL.md`
-- `~/.qclaw/skills/*/SKILL.md`
-- `~/.qclaw/workspace/skills/*/SKILL.md`
 
 Skip `agentguard` itself. Collect the parent directory of each found `SKILL.md` as the skill path.
 
@@ -1065,14 +1071,12 @@ That CLI path fetches the current Cloud advisory feed and checks local skills ag
 
 **EVIDENCE RULE: Every finding you report MUST be backed by actual tool output collected in this step. You MUST quote the exact command output (or "no output" if the command returned nothing) in the finding's evidence field. Findings without concrete evidence from tool execution are FORBIDDEN — do not infer, assume, or fabricate results.**
 
-Run these checks in parallel where possible. These are **universal agent security checks** — they apply to Claude Code, OpenClaw, QClaw, Hermes, and DSH environments, regardless of whether AgentGuard is installed.
+Run these checks in parallel where possible. These are **universal agent security checks** — they apply to Claude Code, OpenClaw, Hermes, and DSH environments, regardless of whether AgentGuard is installed.
 
 1. **[REQUIRED] Discover & scan installed skills and DSH plugins** (→ feeds Dimension 1: Code Safety): Glob ALL of the following paths for `*/SKILL.md`:
    - `~/.claude/skills/*/SKILL.md`
    - `~/.openclaw/skills/*/SKILL.md`
    - `~/.openclaw/workspace/skills/*/SKILL.md`
-   - `~/.qclaw/skills/*/SKILL.md`
-   - `~/.qclaw/workspace/skills/*/SKILL.md`
 
    For **every** discovered skill, run AgentGuard DeepScan (`/agentguard scan <skill_path>`). Do NOT skip any skill regardless of how many are found. Record for each skill: name, risk_level, and exact findings list (rule, severity, file, line).
 
@@ -1082,7 +1086,7 @@ Run these checks in parallel where possible. These are **universal agent securit
    - **Windows**: `stat` is not available. Use `icacls <path>` to check ACLs instead. If directory doesn't exist, record `exists: false`. If it exists, record whether the ACL grants access to `Everyone`, `Users`, or `Authenticated Users`.
    - Also check OpenClaw config files if applicable (`$OC/openclaw.json`, `$OC/devices/paired.json`).
 3. **[REQUIRED] Sensitive credential scan / DLP** (→ feeds Dimension 2: Credential Safety): Use Grep to scan **all** agent workspace directories for leaked secrets. This MUST cover the entire workspace root, not just the current agent's directory:
-   - For OpenClaw / QClaw: scan `~/.openclaw/workspace/` and `~/.qclaw/workspace/` recursively
+   - For OpenClaw: scan `~/.openclaw/workspace/` recursively
    - For Claude Code: scan `~/.claude/` recursively
    - For Hermes Agent: scan `~/.hermes/` recursively
    - Patterns to detect:
@@ -1090,7 +1094,7 @@ Run these checks in parallel where possible. These are **universal agent securit
      - Mnemonics: sequences of 12+ BIP-39 words, `seed_phrase`, `mnemonic`
      - API keys/tokens: `AKIA[0-9A-Z]{16}`, `gh[pousr]_[A-Za-z0-9_]{36}`, plaintext passwords
    - Record: `private_keys_found`, `mnemonics_found`, `api_keys_found` (boolean, with location if found).
-   - **Important**: Use the workspace *root* directory as the scan target (e.g. `~/.qclaw/workspace/`), not a specific agent subdirectory. All sibling `workspace-agent-*` directories must be included.
+   - **Important**: Use the workspace *root* directory as the scan target (e.g. `~/.openclaw/workspace/`), not a specific agent subdirectory. All sibling `workspace-agent-*` directories must be included.
 4. **[REQUIRED] Network exposure** (→ feeds Dimension 3: Network & System): Run `lsof -i -P -n 2>/dev/null | grep LISTEN` or `ss -tlnp 2>/dev/null` to check for dangerous open ports (Redis 6379, Docker API 2375, MySQL 3306, MongoDB 27017 on 0.0.0.0). Record list of dangerous ports found (e.g. `["Redis on 0.0.0.0:6379"]`).
 5. **[REQUIRED] Scheduled tasks audit** (→ feeds Dimension 3: Network & System): Check `crontab -l 2>/dev/null` for suspicious entries containing `curl|bash`, `wget|sh`, or accessing `~/.ssh/`. Record list of suspicious cron command strings found.
 6. **[REQUIRED] Environment variable exposure** (→ feeds Dimension 3: Network & System): Run `env` and check for sensitive variable names (`PRIVATE_KEY`, `MNEMONIC`, `SECRET`, `PASSWORD`) — detect presence only, mask values. Record list of sensitive variable names found.

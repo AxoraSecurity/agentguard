@@ -2,7 +2,7 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync }
 import { dirname, join } from 'node:path';
 import { homedir } from 'node:os';
 
-export type AgentGuardAgentHost = 'claude-code' | 'codex' | 'openclaw' | 'hermes' | 'qclaw' | 'dsh';
+export type AgentGuardAgentHost = 'claude-code' | 'codex' | 'openclaw' | 'hermes' | 'dsh';
 
 export interface AgentGuardConfig {
   version: 1;
@@ -125,6 +125,20 @@ export function loadConfig(): AgentGuardConfig {
     };
   } catch {
     return fallback;
+  }
+}
+
+/** Detect a retired host in the saved file before normalization drops it. */
+export function hasRetiredQClawHost(): boolean {
+  try {
+    const parsed = JSON.parse(readFileSync(getAgentGuardPaths().configPath, 'utf8')) as {
+      agentHost?: unknown;
+      agentHosts?: unknown;
+    };
+    return parsed.agentHost === 'qclaw'
+      || (Array.isArray(parsed.agentHosts) && parsed.agentHosts.includes('qclaw'));
+  } catch {
+    return false;
   }
 }
 
@@ -253,7 +267,7 @@ function normalizeLevel(value: unknown): AgentGuardConfig['level'] | null {
 }
 
 function normalizeAgentHost(value: unknown): AgentGuardAgentHost | undefined {
-  return value === 'claude-code' || value === 'codex' || value === 'openclaw' || value === 'hermes' || value === 'qclaw' || value === 'dsh'
+  return value === 'claude-code' || value === 'codex' || value === 'openclaw' || value === 'hermes' || value === 'dsh'
     ? value
     : undefined;
 }

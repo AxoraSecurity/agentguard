@@ -48,7 +48,7 @@ file results keep their normal privacy checks.
 
 This intentionally means credentials or personal data printed by AgentGuard
 commands can reach the agent unchanged. AgentGuard also does not rewrite those
-results in OpenClaw, QClaw, Hermes, or DSH. Claude `MessageDisplay` protects
+results in OpenClaw, Hermes, or DSH. Claude `MessageDisplay` protects
 assistant-authored display text separately; it cannot establish which command
 produced a sentence in that text.
 
@@ -86,7 +86,7 @@ number anywhere else in the application.
 |---|---|---|
 | Claude Code | Native `WebSearch` post-tool and post-tool batch | Only known rewriteable result shapes receive the numeric exception. |
 | Codex | `PostToolUse` when the hook exposes an exact `web_search`/`WebSearch` result | Hosted searches that bypass native hooks cannot be observed. |
-| OpenClaw / QClaw | Native `after_tool_call` result of `web_search` | Results cannot be rewritten; this is an observer boundary. |
+| OpenClaw | Native `after_tool_call` result of `web_search` | Results cannot be rewritten; this is an observer boundary. |
 | Hermes | `post_tool_call` result of `web_search` with a host-provided `result` and `status: ok` | Aliases such as `output` and `tool_result`, malformed/failed results, and older hooks that provide only arguments cannot establish result provenance. `pre_api_request` is observe-only. |
 | DSH | Native `web_search`/`search_query` post-execute result | Result suppression requires `postResponseMode: block-malicious`; ordinary audit mode does not block. |
 

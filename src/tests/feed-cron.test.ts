@@ -1474,35 +1474,28 @@ describe('feed/cron', () => {
     assert.deepEqual(gateway.calls, []);
   });
 
-  it('auto-installs QClaw Gateway cron jobs for QClaw agents', async () => {
-    const gateway = fakeGateway();
-    const runner: CommandRunner = async () => {
-      throw new Error('system cron should not be used for qclaw auto target');
-    };
+  it('rejects a retired host instead of falling back to local cron', async () => {
+    await assert.rejects(installThreatFeedCron({
+      name: 'agentguard-threat-feed',
+      cronExpression: '0 * * * *',
+      quiet: false,
+      force: false,
+      backend: 'auto',
+      agentHost: 'qclaw' as never,
+    }), /Unsupported agent host/);
+  });
 
-    const result = await installThreatFeedCron(
-      {
-        name: 'agentguard-threat-feed',
-        cronExpression: '0 * * * *',
-        quiet: false,
-        force: false,
-        backend: 'auto',
-        agentHost: 'qclaw',
-        timezone: 'UTC',
-      },
-      { runCommand: runner, gateway: { request: gateway.request } }
-    );
-
-    assert.equal(result.backend, 'qclaw-gateway');
-    assert.deepEqual(gateway.calls.map((call) => call.method), ['cron.list', 'cron.add']);
-    const job = gateway.calls[1].params;
-    assert.equal(job.name, 'agentguard-threat-feed');
-    assert.deepEqual(job.schedule, { kind: 'cron', expr: '0 * * * *', tz: 'UTC' });
-    assert.deepEqual(job.delivery, { mode: 'announce', channel: 'last' });
-    assert.equal('agentguard' in job.payload, false);
-    assert.match(job.payload.message, /Command: `agentguard subscribe --cron-notify-run`/);
-    assert.match(job.payload.message, /remediation guidance/);
-    assert.match(job.payload.message, /manual response steps/);
+  it('cleans up a retired Gateway job without removing a local job', async () => {
+    const gateway = fakeGateway([{ id: 'legacy-job', name: 'agentguard-threat-feed' }]);
+    const result = await removeThreatFeedCron({
+      name: 'agentguard-threat-feed',
+      backend: 'qclaw',
+    }, {
+      gateway: { request: gateway.request },
+      runCommand: async () => { throw new Error('local cron must not be accessed'); },
+    });
+    assert.deepEqual(result, [{ name: 'agentguard-threat-feed', backend: 'qclaw-gateway', removed: true }]);
+    assert.deepEqual(gateway.calls.map(call => call.method), ['cron.list', 'cron.remove']);
   });
 
   it('auto-installs native Hermes cron jobs for Hermes agents', async () => {

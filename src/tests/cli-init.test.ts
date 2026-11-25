@@ -67,6 +67,29 @@ describe('init CLI', () => {
     assert.doesNotMatch(stdout, /agentguard checkup/);
   });
 
+  it('ignores a retired QClaw host saved by an earlier version', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'agentguard-retired-host-home-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'agentguard-retired-host-cwd-'));
+    const cliPath = resolve('dist', 'cli.js');
+    mkdirSync(home, { recursive: true });
+    writeFileSync(join(home, 'config.json'), JSON.stringify({
+      version: 1,
+      level: 'balanced',
+      agentHost: 'qclaw',
+      agentHosts: ['qclaw', 'openclaw'],
+      policyCachePath: join(home, 'policy-cache.json'),
+      auditPath: join(home, 'audit.jsonl'),
+      eventSpoolPath: join(home, 'events-spool.jsonl'),
+    }));
+
+    const { stdout } = await execFileAsync(process.execPath, [cliPath, 'status'], {
+      cwd,
+      env: { ...process.env, AGENTGUARD_HOME: home },
+    });
+    assert.match(stdout, /Agent host: not configured/);
+    assert.match(stdout, /Agent hosts: openclaw/);
+  });
+
   it('shows API-key Cloud auth without requiring Agent JWT fields', async () => {
     const home = mkdtempSync(join(tmpdir(), 'agentguard-status-api-key-home-'));
     const cwd = mkdtempSync(join(tmpdir(), 'agentguard-status-api-key-cwd-'));
@@ -496,29 +519,32 @@ describe('init CLI', () => {
     assert.deepEqual(settings.permissions.deny, [`Read(${exact})`]);
   });
 
-  it('accepts Hermes and QClaw agent installers', async () => {
-    for (const agent of ['hermes', 'qclaw']) {
-      const home = mkdtempSync(join(tmpdir(), `agentguard-init-${agent}-home-`));
-      const cwd = mkdtempSync(join(tmpdir(), `agentguard-init-${agent}-cwd-`));
-      const hermesHome = join(home, '.hermes');
-      const cliPath = resolve('dist', 'cli.js');
+  it('accepts the Hermes agent installer', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'agentguard-init-hermes-home-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'agentguard-init-hermes-cwd-'));
+    const hermesHome = join(home, '.hermes');
+    const cliPath = resolve('dist', 'cli.js');
 
-      await execFileAsync(process.execPath, [cliPath, 'init', '--agent', agent, '--force'], {
-        cwd,
-        env: {
-          ...process.env,
-          AGENTGUARD_HOME: home,
-          ...(agent === 'hermes' ? { HERMES_HOME: hermesHome } : {}),
-        },
-      });
+    await execFileAsync(process.execPath, [cliPath, 'init', '--agent', 'hermes', '--force'], {
+      cwd,
+      env: { ...process.env, AGENTGUARD_HOME: home, HERMES_HOME: hermesHome },
+    });
 
-      const config = JSON.parse(readFileSync(join(home, 'config.json'), 'utf8')) as { agentHost?: string };
-      assert.equal(config.agentHost, agent);
-      if (agent === 'hermes') {
-        assert.ok(existsSync(join(hermesHome, 'plugins', 'agentguard', 'plugin.yaml')));
-        assert.ok(readFileSync(join(hermesHome, 'config.yaml'), 'utf8').includes('- agentguard'));
-      }
-    }
+    const config = JSON.parse(readFileSync(join(home, 'config.json'), 'utf8')) as { agentHost?: string };
+    assert.equal(config.agentHost, 'hermes');
+    assert.ok(existsSync(join(hermesHome, 'plugins', 'agentguard', 'plugin.yaml')));
+    assert.ok(readFileSync(join(hermesHome, 'config.yaml'), 'utf8').includes('- agentguard'));
+  });
+
+  it('rejects the retired QClaw installer', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'agentguard-init-unsupported-home-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'agentguard-init-unsupported-cwd-'));
+    const cliPath = resolve('dist', 'cli.js');
+    await assert.rejects(execFileAsync(process.execPath, [cliPath, 'init', '--agent', 'qclaw'], {
+      cwd,
+      env: { ...process.env, AGENTGUARD_HOME: home },
+    }), /Invalid agent/);
+    assert.equal(existsSync(join(cwd, '.qclaw')), false);
   });
 
   it('normalizes --agent values to lowercase', async () => {

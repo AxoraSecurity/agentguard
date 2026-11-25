@@ -159,15 +159,14 @@ agentguard subscribe --quiet
 # Optional: run once, then install a cron job that checks every hour and asks
 # you to review newly published advisories. Auto uses the agent host saved by
 # `agentguard init`: OpenClaw uses native OpenClaw cron with Gateway
-# fallback at 127.0.0.1:18789, QClaw uses QClaw Gateway at 127.0.0.1:28789,
-# Hermes uses native Hermes cron. Claude Code and Codex use system crontab on
+# fallback at 127.0.0.1:18789. Hermes uses native Hermes cron.
+# Claude Code and Codex use system crontab on
 # Unix-like hosts and native Windows Task Scheduler on Windows. DSH schedules
 # must be created with the native agentguard_dsh_subscribe tool so notification
 # delivery is bound to the exact calling DSH session.
 # OpenClaw cron jobs keep runner delivery internal, then resolve the latest
 # deliverable session route at runtime and send notifications directly there.
-# QClaw cron jobs still use last-route announce delivery; no-notification runs
-# print NO_REPLY. OpenClaw cron runs auto-detect the saved host type during
+# OpenClaw cron runs auto-detect the saved host type during
 # `agentguard subscribe --cron-run`.
 # If you pass `--cron-target openclaw` explicitly while a different saved host
 # exists, AgentGuard now rejects that mismatch instead of installing a cron job
@@ -183,7 +182,6 @@ agentguard subscribe --cron "0 * * * *"
 # Override cron backend selection when needed.
 agentguard subscribe --cron "0 * * * *" --cron-target system
 agentguard subscribe --cron "0 * * * *" --cron-target openclaw
-agentguard subscribe --cron "0 * * * *" --cron-target qclaw
 agentguard subscribe --cron "0 * * * *" --cron-target hermes
 agentguard subscribe --cron "0 * * * *" --cron-target windows
 # System cron and Windows Task Scheduler write output to
@@ -212,7 +210,6 @@ agentguard init --agent claude-code
 agentguard init --agent codex
 agentguard init --agent openclaw
 agentguard init --agent hermes        # native Hermes plugin (add --shell-hooks for the legacy flow)
-agentguard init --agent qclaw
 agentguard init --agent dsh           # native bundle in the default web profile; restart DSH
 ```
 

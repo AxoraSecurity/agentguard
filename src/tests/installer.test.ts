@@ -472,21 +472,6 @@ describe('Agent template installers', () => {
     assert.ok(config.includes('custom_event:'));
   });
 
-  it('writes QClaw skill template and enables plugin', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'agentguard-qclaw-'));
-    const result = installAgentTemplates('qclaw', { cwd: dir });
-    const pluginDir = join(dir, '.qclaw', 'plugins', 'agentguard');
-    const packageJson = JSON.parse(readFileSync(join(pluginDir, 'package.json'), 'utf8'));
-    const config = JSON.parse(readFileSync(join(dir, '.qclaw', 'qclaw.json'), 'utf8'));
-
-    assert.equal(result.agent, 'qclaw');
-    assert.ok(result.files.includes(join(dir, '.qclaw', 'skills', 'agentguard')));
-    assert.ok(existsSync(join(dir, '.qclaw', 'skills', 'agentguard', 'SKILL.md')));
-    assert.deepEqual(packageJson.qclaw.extensions, ['./index.js']);
-    assert.equal(config.plugins.entries.agentguard.enabled, true);
-    assert.deepEqual(config.plugins.load.paths, [pluginDir]);
-  });
-
   it('writes OpenClaw skill and enables plugin template', () => {
     const dir = mkdtempSync(join(tmpdir(), 'agentguard-openclaw-'));
     const result = installAgentTemplates('openclaw', { cwd: dir });

@@ -45,7 +45,7 @@ Native UI may present `require_approval` as `confirm`, but API payloads should k
 ### Agent hosts
 
 ```text
-claude-code | codex | openclaw | hermes | qclaw | dsh | cursor | gemini | copilot | other
+claude-code | codex | openclaw | hermes | dsh | cursor | gemini | copilot | other
 ```
 
 ### Action types

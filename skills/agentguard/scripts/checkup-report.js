@@ -1402,8 +1402,8 @@ body{background:#0a0e14;color:#dfe2eb;font-family:'Inter',sans-serif}
   const outPath = join(tmpdir(), `agentguard-checkup-${Date.now()}.html`);
   writeFileSync(outPath, html, 'utf8');
 
-  // Skip browser open for headless/bot environments (Qclaw, OpenClaw, CI)
-  const isHeadless = process.env.OPENCLAW_STATE_DIR || process.env.QCLAW || process.env.CI;
+  // Skip browser open for headless/bot environments (OpenClaw, CI)
+  const isHeadless = process.env.OPENCLAW_STATE_DIR || process.env.CI;
 
   // Flush stdout before doing anything else — on Windows/Linux in non-TTY/pipe
   // mode, console.log() is non-blocking and process.exit() can terminate before

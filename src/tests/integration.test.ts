@@ -353,7 +353,7 @@ describe('Integration: OpenClaw registerOpenClawPlugin', () => {
     assert.equal(result, undefined, 'Ordinary OpenClaw exec command should be allowed');
   });
 
-  it('keeps QClaw-compatible plugin registration working without a persistence hook', async () => {
+  it('keeps OpenClaw plugin registration working without a persistence hook', async () => {
     ctx = createTestContext();
     const { api, handlers } = createMockApi();
     const originalOn = api.on;
@@ -369,7 +369,7 @@ describe('Integration: OpenClaw registerOpenClawPlugin', () => {
       params: { command: 'agentguard status' } }), undefined);
   });
 
-  it('does not register a result rewrite hook for OpenClaw or QClaw', async () => {
+  it('does not register a result rewrite hook for OpenClaw', async () => {
     ctx = createTestContext();
     const { api, handlers } = createMockApi();
     registerOpenClawPlugin(api as never, {

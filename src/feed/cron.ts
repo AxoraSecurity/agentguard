@@ -8,9 +8,9 @@ import { homedir } from 'node:os';
 import { isAbsolute, join, win32 } from 'node:path';
 import { Cron } from 'croner';
 
-export type CronBackend = 'auto' | 'openclaw' | 'qclaw' | 'hermes' | 'system' | 'windows';
-export type ResolvedCronBackend = 'openclaw' | 'openclaw-gateway' | 'qclaw-gateway' | 'hermes' | 'system' | 'windows-task-scheduler';
-export type CronAgentHost = 'claude-code' | 'codex' | 'openclaw' | 'hermes' | 'qclaw' | 'dsh';
+export type CronBackend = 'auto' | 'openclaw' | 'hermes' | 'system' | 'windows';
+export type ResolvedCronBackend = 'openclaw' | 'openclaw-gateway' | 'hermes' | 'system' | 'windows-task-scheduler';
+export type CronAgentHost = 'claude-code' | 'codex' | 'openclaw' | 'hermes' | 'dsh';
 
 export interface OpenClawCronInstallResult {
   name: string;
@@ -24,7 +24,7 @@ export interface OpenClawCronInstallResult {
 
 export interface ThreatFeedCronRemovalResult {
   name: string;
-  backend: ResolvedCronBackend;
+  backend: ResolvedCronBackend | 'qclaw-gateway';
   removed: boolean;
   error?: string;
 }
@@ -308,9 +308,12 @@ export async function installThreatFeedCron(
 ): Promise<OpenClawCronInstallResult> {
   const backend = options.backend ?? 'auto';
   const platform = adapters.platform ?? process.platform;
+  if (options.agentHost && !['claude-code', 'codex', 'openclaw', 'hermes', 'dsh'].includes(options.agentHost)) {
+    throw new Error(`Unsupported agent host: ${options.agentHost}`);
+  }
   if (backend === 'auto' && !options.agentHost) {
     throw new Error(
-      'Cron target auto requires a saved agent host. Run `agentguard init --agent <claude-code|codex|openclaw|hermes|qclaw|dsh>` first, or pass `--cron-target openclaw`, `--cron-target qclaw`, `--cron-target hermes`, `--cron-target system`, or `--cron-target windows`.'
+      'Cron target auto requires a saved agent host. Run `agentguard init --agent <claude-code|codex|openclaw|hermes|dsh>` first, or pass `--cron-target openclaw`, `--cron-target hermes`, `--cron-target system`, or `--cron-target windows`.'
     );
   }
   if (backend === 'openclaw' && options.agentHost && options.agentHost !== 'openclaw') {
@@ -323,7 +326,6 @@ export async function installThreatFeedCron(
     backend === 'auto' &&
     platform === 'win32' &&
     options.agentHost !== 'openclaw' &&
-    options.agentHost !== 'qclaw' &&
     options.agentHost !== 'hermes'
   )) {
     return installWindowsThreatFeedTask(options, {
@@ -333,7 +335,7 @@ export async function installThreatFeedCron(
       now: adapters.now,
     });
   }
-  if (backend === 'system' || (backend === 'auto' && options.agentHost !== 'openclaw' && options.agentHost !== 'qclaw' && options.agentHost !== 'hermes')) {
+  if (backend === 'system' || (backend === 'auto' && options.agentHost !== 'openclaw' && options.agentHost !== 'hermes')) {
     return installSystemThreatFeedCron(options, adapters.runCommand);
   }
 
@@ -366,16 +368,7 @@ export async function installThreatFeedCron(
     }
   }
 
-  if (backend === 'qclaw' || (backend === 'auto' && options.agentHost === 'qclaw')) {
-    const result = await installQClawThreatFeedCron(
-      options,
-      qclawGatewayOptions(adapters.gateway)
-    );
-    result.backend = 'qclaw-gateway';
-    return result;
-  }
-
-  throw new Error('Invalid cron target. Use auto, openclaw, qclaw, hermes, system, or windows.');
+  throw new Error('Invalid cron target. Use auto, openclaw, hermes, system, or windows.');
 }
 
 async function installWindowsThreatFeedTask(
@@ -837,7 +830,7 @@ function windowsCommandLineQuote(value: string): string {
 export async function removeThreatFeedCron(
   options: {
     name: string;
-    backend?: CronBackend | 'all';
+    backend?: CronBackend | 'all' | 'qclaw';
     agentHost?: CronAgentHost;
     agentGuardHome?: string;
     hermesHome?: string;
@@ -850,6 +843,9 @@ export async function removeThreatFeedCron(
 ): Promise<ThreatFeedCronRemovalResult[]> {
   const backend = options.backend ?? 'auto';
   const platform = adapters.platform ?? process.platform;
+  if (!['auto', 'all', 'openclaw', 'qclaw', 'hermes', 'system', 'windows'].includes(backend)) {
+    throw new Error(`Unsupported cron backend: ${backend}`);
+  }
   if (backend === 'all') {
     const localBackend: ResolvedCronBackend = platform === 'win32' ? 'windows-task-scheduler' : 'system';
     return removeThreatFeedCronFromBackends(options, [localBackend, 'hermes', 'openclaw', 'openclaw-gateway', 'qclaw-gateway'], adapters);
@@ -867,13 +863,11 @@ export async function removeThreatFeedCron(
     return removeThreatFeedCronFromBackends(options, ['openclaw', 'openclaw-gateway'], adapters);
   }
   if (backend === 'qclaw') {
-    return [await removeGatewayThreatFeedCron(options, qclawGatewayOptions(adapters.gateway), 'qclaw-gateway')];
+    return [await removeGatewayThreatFeedCron(options, retiredQClawGatewayOptions(adapters.gateway), 'qclaw-gateway')];
   }
-
   const targets: ResolvedCronBackend[] = platform === 'win32' ? ['windows-task-scheduler'] : ['system'];
   if (options.agentHost === 'hermes') targets.push('hermes');
   if (options.agentHost === 'openclaw') targets.push('openclaw', 'openclaw-gateway');
-  if (options.agentHost === 'qclaw') targets.push('qclaw-gateway');
   return removeThreatFeedCronFromBackends(options, targets, adapters);
 }
 
@@ -883,7 +877,7 @@ async function removeThreatFeedCronFromBackends(
     agentGuardHome?: string;
     hermesHome?: string;
   },
-  backends: ResolvedCronBackend[],
+  backends: Array<ResolvedCronBackend | 'qclaw-gateway'>,
   adapters: {
     gateway?: OpenClawGatewayOptions;
     runCommand?: CommandRunner;
@@ -902,7 +896,7 @@ async function removeThreatFeedCronFromBackends(
     } else if (backend === 'openclaw-gateway') {
       results.push(await removeGatewayThreatFeedCron(options, adapters.gateway, 'openclaw-gateway'));
     } else if (backend === 'qclaw-gateway') {
-      results.push(await removeGatewayThreatFeedCron(options, qclawGatewayOptions(adapters.gateway), 'qclaw-gateway'));
+      results.push(await removeGatewayThreatFeedCron(options, retiredQClawGatewayOptions(adapters.gateway), 'qclaw-gateway'));
     }
   }
   return results;
@@ -1118,72 +1112,6 @@ export async function installOpenClawThreatFeedCron(
     timezone,
     created: true,
     backend: 'openclaw-gateway',
-    command,
-  };
-}
-
-async function installQClawThreatFeedCron(
-  options: {
-    name: string;
-    cronExpression: string;
-    quiet: boolean;
-    force: boolean;
-    timezone?: string;
-  },
-  gateway: OpenClawGatewayOptions = {}
-): Promise<OpenClawCronInstallResult> {
-  const schedule = validateCronExpression(options.cronExpression);
-  const timezone = options.timezone ?? localTimeZone();
-  const command = threatFeedCommand(options.quiet, { notifyRun: true });
-  const existing = await findOpenClawCronJobsByName(options.name, gateway);
-  if (existing.length > 0 && !options.force) {
-    return {
-      name: options.name,
-      schedule,
-      timezone,
-      created: false,
-      backend: 'qclaw-gateway',
-      command,
-    };
-  }
-
-  const description = `AgentGuard Cloud threat feed subscription (${schedule})`;
-  const message = qclawCronMessage(options.quiet);
-
-  if (existing.length > 0) {
-    await removeOpenClawCronJobs(existing, gateway);
-  }
-  await openClawGatewayRequest(
-    'cron.add',
-    {
-      name: options.name,
-      description,
-      enabled: true,
-      schedule: {
-        kind: 'cron',
-        expr: schedule,
-        tz: timezone,
-      },
-      sessionTarget: 'isolated',
-      payload: {
-        kind: 'agentTurn',
-        message,
-        timeoutSeconds: 300,
-      },
-      delivery: {
-        mode: 'announce',
-        channel: 'last',
-      },
-    },
-    gateway
-  );
-
-  return {
-    name: options.name,
-    schedule,
-    timezone,
-    created: true,
-    backend: 'qclaw-gateway',
     command,
   };
 }
@@ -1577,15 +1505,12 @@ async function removeGatewayThreatFeedCron(
   }
 }
 
-function threatFeedCommand(
-  quiet: boolean,
-  options: { notifyRun?: boolean } = {}
-): string {
-  const modeFlag = options.notifyRun ? '--cron-notify-run' : '--json --cron-run';
-  return `agentguard subscribe${quiet ? ' --quiet' : ''} ${modeFlag}`;
+function threatFeedCommand(quiet: boolean): string {
+  return `agentguard subscribe${quiet ? ' --quiet' : ''} --json --cron-run`;
 }
 
-function qclawGatewayOptions(gateway: OpenClawGatewayOptions = {}): OpenClawGatewayOptions {
+/** Cleanup only for jobs installed by older releases. */
+function retiredQClawGatewayOptions(gateway: OpenClawGatewayOptions = {}): OpenClawGatewayOptions {
   return {
     ...gateway,
     port: gateway.port ?? 28789,
@@ -1674,41 +1599,6 @@ function openClawCronMessage(quiet: boolean): string {
     '- The command handles its own OpenClaw notification delivery.',
     '- Do not send a separate chat reply, summary, or confirmation.',
     '- Output the command stdout exactly as your final response.',
-    '- If the command fails or prints no stdout, output `NO_REPLY`.',
-    '',
-    'Follow these rules exactly.',
-  ].join('\n');
-}
-
-function qclawCronMessage(quiet: boolean): string {
-  const mode = quiet ? 'quiet' : 'manual';
-  const command = threatFeedCommand(quiet, { notifyRun: true });
-  if (!quiet) {
-    return [
-      `Mode: ${mode}.`,
-      `Command: \`${command}\`.`,
-      `Run exactly the command above.`,
-      '',
-      'Rules:',
-      '- If the command fails, prints no stdout, or prints only `NO_REPLY`, output `NO_REPLY`.',
-      '- If the command prints threat-feed advisories, read the full output, including any remediation guidance.',
-      '- Respond in the same language as the user would naturally use for this chat.',
-      '- Summarize the new threat(s), identify the likely local impact, and give concise manual response steps.',
-      '- Preserve advisory IDs and severity labels.',
-      '- Do not claim a local match was found unless the command output explicitly says so.',
-      '',
-      'Follow these rules exactly.',
-    ].join('\n');
-  }
-  return [
-    `Mode: ${mode}.`,
-    `Command: \`${command}\`.`,
-    `Run exactly the command above.`,
-    '',
-    'Rules:',
-    '- The command prints either the exact notification body or `NO_REPLY`.',
-    '- Output the command stdout exactly as your final response.',
-    '- Do not summarize, transform, add labels, or send a separate message.',
     '- If the command fails or prints no stdout, output `NO_REPLY`.',
     '',
     'Follow these rules exactly.',

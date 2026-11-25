@@ -2777,7 +2777,7 @@ describe('Runtime Cloud bridge', () => {
     }
   });
 
-  it('does not rescan AgentGuard CLI results on OpenClaw, QClaw, or Hermes post hooks', async () => {
+  it('does not rescan AgentGuard CLI results on OpenClaw or Hermes post hooks', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'agentguard-self-cli-post-hosts-'));
     const config: AgentGuardConfig = {
       version: 1,
@@ -2790,14 +2790,6 @@ describe('Runtime Cloud bridge', () => {
     const cases = [
       {
         agentHost: 'openclaw' as const,
-        toolName: 'exec',
-        rawInput: {
-          toolName: 'exec', params: { command: 'agentguard status' },
-          result: { output: statusOutput },
-        },
-      },
-      {
-        agentHost: 'qclaw' as const,
         toolName: 'exec',
         rawInput: {
           toolName: 'exec', params: { command: 'agentguard status' },
@@ -2906,7 +2898,6 @@ describe('Runtime Cloud bridge', () => {
 
       for (const command of [
         'openclaw gateway restart',
-        'qclaw gateway restart',
         'hermes config reload',
         'codex --version',
         'claude mcp list',

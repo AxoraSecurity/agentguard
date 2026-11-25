@@ -5,7 +5,7 @@ import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { dirname, extname, join, relative, resolve, sep } from 'node:path';
 import { tmpdir, homedir } from 'node:os';
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { AgentGuardCloudClient } from './cloud/client.js';
 import {
   connectCloud,
@@ -15,6 +15,7 @@ import {
   disconnectCloud,
   ensureConfig,
   getAgentGuardPaths,
+  hasRetiredQClawHost,
   loadConfig,
   maskApiKey,
   normalizeCloudUrl,
@@ -69,12 +70,11 @@ import {
   enqueueDshThreatFeedNotification,
 } from './feed/dsh-notifications.js';
 
-const SUPPORTED_AGENT_INSTALLERS: AgentInstaller[] = ['claude-code', 'codex', 'openclaw', 'hermes', 'qclaw', 'dsh'];
+const SUPPORTED_AGENT_INSTALLERS: AgentInstaller[] = ['claude-code', 'codex', 'openclaw', 'hermes', 'dsh'];
 const AUTO_AGENT_DETECTION: Array<{ agent: AgentInstaller; dir: string }> = [
   { agent: 'claude-code', dir: '.claude' },
   { agent: 'openclaw', dir: '.openclaw' },
   { agent: 'hermes', dir: '.hermes' },
-  { agent: 'qclaw', dir: '.qclaw' },
   { agent: 'codex', dir: '.codex' },
 ];
 const REQUIRED_INIT_COMMAND = 'agentguard init';
@@ -91,7 +91,7 @@ async function main() {
     .command('init')
     .description('Create ~/.agentguard/config.json and local runtime paths')
     .option('--level <level>', 'Protection level: Strict (strict), Balanced (balanced, default), or Observe (permissive in the CLI)')
-    .option('--agent <agent>', 'Install integration for auto, claude-code, codex, openclaw, hermes, qclaw, or dsh (default: auto)')
+    .option('--agent <agent>', 'Install integration for auto, claude-code, codex, openclaw, hermes, or dsh (default: auto)')
     .option('--profile <name>', 'DSH profile (overrides AGENTGUARD_DSH_PROFILE)')
     .option('--cloud <url>', 'AgentGuard Cloud URL to store in local config')
     .option('--shell-hooks', 'For Hermes: install legacy shell hooks instead of the native plugin')
@@ -121,7 +121,7 @@ async function main() {
         if (normalizedAgent === 'auto') {
           const results = initAutoAgents(config, forceTemplates, options.profile);
           if (results.detected.length === 0) {
-            console.log('No supported agent installation found. Looked for DSH and .claude, .openclaw, .hermes, .qclaw, and .codex.');
+            console.log('No supported agent installation found. Looked for DSH and .claude, .openclaw, .hermes, and .codex.');
           } else if (results.installed.length === 0) {
             console.log('No agent integrations were installed; all detected agent initializers failed.');
           }
@@ -137,7 +137,7 @@ async function main() {
           return;
         }
         if (!SUPPORTED_AGENT_INSTALLERS.includes(normalizedAgent as AgentInstaller)) {
-          throw new Error('Invalid agent. Use auto, claude-code, codex, openclaw, hermes, qclaw, or dsh.');
+          throw new Error('Invalid agent. Use auto, claude-code, codex, openclaw, hermes, or dsh.');
         }
         const agent = normalizedAgent as AgentInstaller;
         if (options.profile !== undefined && agent !== 'dsh') {
@@ -262,7 +262,7 @@ async function main() {
       const currentConfig = ensureConfig();
       const cronRemoval = await removeThreatFeedCron({
         name: currentConfig.threatFeedCronName || 'agentguard-threat-feed',
-        backend: 'auto',
+        backend: hasRetiredQClawHost() ? 'all' : 'auto',
         agentHost: resolveCronAgentHost(currentConfig),
         agentGuardHome: getAgentGuardPaths().home,
       });
@@ -747,25 +747,32 @@ async function main() {
     .option('--quiet', 'Run the full pull, self-check, and match-reporting flow with minimal output')
     .option('--no-report', 'Skip uploading self-check results back to Cloud')
     .option('--cron <expr>', 'Install a cron job with a five-field cron expression, for example "0 * * * *"')
-    .option('--cron-target <target>', 'Cron backend: auto, openclaw, qclaw, hermes, system, or windows', 'auto')
+    .option('--cron-target <target>', 'Cron backend: auto, openclaw, hermes, system, or windows', 'auto')
     .option('--cron-name <name>', 'Cron job name', 'agentguard-threat-feed')
     .option('--force', 'Replace an existing cron job with the same name')
     .option('--cron-run', 'Internal: run from the OpenClaw cron prompt without trying to install cron again')
-    .option('--cron-notify-run', 'Internal: run from an OpenClaw cron prompt and print only the notification body or NO_REPLY')
+    .addOption(new Option('--cron-notify-run').hideHelp())
     .action(async (options) => {
+      // Retire previously installed notification jobs without contacting Cloud.
+      if (options.cronNotifyRun) {
+        console.log('NO_REPLY');
+        return;
+      }
       let config = ensureConfig();
       let client = new AgentGuardCloudClient(config);
       const cronAgentHost = resolveCronAgentHost(config);
       const state = loadFeedState();
       const since = options.since as string | undefined;
       const quiet = Boolean(options.quiet);
-      const cronNotifyRun = Boolean(options.cronNotifyRun);
-      const cronInternalRun = Boolean(options.cronRun || options.cronNotifyRun);
+      const cronInternalRun = Boolean(options.cronRun);
       const cronTarget = validateCronTarget(options.cronTarget);
       const cronRunSendsToOpenClaw = Boolean(options.cronRun) && cronAgentHost === 'openclaw';
       const cronExpression = options.cron && !options.cronRun
         ? validateCronExpression(options.cron as string)
         : undefined;
+      if (cronExpression && cronTarget === 'auto' && !cronAgentHost && hasRetiredQClawHost()) {
+        throw new Error('QClaw integration was removed in 1.2.7. Run `agentguard init --agent <supported-agent>` before scheduling a new job.');
+      }
       if (cronExpression && cronAgentHost === 'dsh') {
         throw new Error(
           'DSH scheduled threat-feed subscriptions must be created from DSH with the '
@@ -777,9 +784,7 @@ async function main() {
       if (!client.connected) {
         if (!isAgentJwtHostConfigured(config)) {
           const message = 'AgentGuard Cloud is not connected. Run `agentguard connect --key <key>` first, or run `agentguard init` to auto-detect an OpenClaw, Hermes, or DSH host for Agent JWT registration.';
-          if (cronNotifyRun) {
-            console.log('NO_REPLY');
-          } else if (options.json) {
+          if (options.json) {
             console.log(JSON.stringify({ success: false, error: message }, null, 2));
           } else {
             console.error(message);
@@ -796,11 +801,6 @@ async function main() {
           config = registration.config;
           client = registration.client;
         } catch (err) {
-          if (cronNotifyRun) {
-            console.log('NO_REPLY');
-            process.exitCode = 0;
-            return;
-          }
           console.error(`! Could not register AgentGuard agent: ${(err as Error).message}`);
           process.exitCode = 1;
           return;
@@ -840,7 +840,7 @@ async function main() {
         }
       }
 
-      if (registration && !cronNotifyRun && !quiet && !options.json) {
+      if (registration && !quiet && !options.json) {
         printAgentRegistrationNotice(registration);
       }
 
@@ -870,21 +870,11 @@ async function main() {
             client = registration.client;
             advisories = await client.pullAdvisories(since);
           } catch (retryErr) {
-            if (cronNotifyRun) {
-              console.log('NO_REPLY');
-              process.exitCode = 0;
-              return;
-            }
             printAgentActivationRequired(registration, retryErr);
             process.exitCode = 1;
             return;
           }
         } else {
-          if (cronNotifyRun) {
-            console.log('NO_REPLY');
-            process.exitCode = 0;
-            return;
-          }
           console.error(`! Could not reach AgentGuard Cloud: ${(err as Error).message}`);
           process.exitCode = 1;
           return;
@@ -892,9 +882,7 @@ async function main() {
       }
       if (advisories === null) {
         // 404 — older Cloud build without the feed endpoint. Not an error.
-        if (cronNotifyRun) {
-          console.log('NO_REPLY');
-        } else if (options.json) {
+        if (options.json) {
           console.log(JSON.stringify({ supported: false, shouldNotify: false, results: [], cron: { requested: false, installed: false } }));
         } else if (!quiet) {
           console.log('AgentGuard Cloud does not expose /api/v1/feed/advisories yet — nothing to do.');
@@ -1076,12 +1064,6 @@ async function main() {
         saveFeedState(prependFeedStateEntry(state, pendingStateEntry));
       }
 
-      if (cronNotifyRun) {
-        console.log(summary.shouldNotify && summary.hardFailures === 0 ? summary.notification?.body ?? 'NO_REPLY' : 'NO_REPLY');
-        process.exitCode = 0;
-        return;
-      }
-
       if (options.json) {
         console.log(JSON.stringify(summary, null, 2));
         return;
@@ -1241,8 +1223,8 @@ async function waitForHermesDaemonShutdown(daemon: HermesEvaluatorDaemon): Promi
 }
 
 function validateCronTarget(value: unknown): CronBackend {
-  if (value === 'auto' || value === 'openclaw' || value === 'qclaw' || value === 'hermes' || value === 'system' || value === 'windows') return value;
-  throw new Error('Invalid cron target. Use auto, openclaw, qclaw, hermes, system, or windows.');
+  if (value === 'auto' || value === 'openclaw' || value === 'hermes' || value === 'system' || value === 'windows') return value;
+  throw new Error('Invalid cron target. Use auto, openclaw, hermes, system, or windows.');
 }
 
 function initAutoAgents(config: AgentGuardConfig, force: boolean, profile?: string): {
@@ -1420,7 +1402,7 @@ function networkDefaultOutboundWarning(value: string): string | undefined {
 }
 
 async function printSubscribeConnectRequired(
-  options: { json?: boolean; cronNotifyRun?: boolean },
+  options: { json?: boolean },
   notifyOpenClaw: boolean
 ): Promise<void> {
   const message = 'AgentGuard Cloud credential was rejected. Run `agentguard connect` again before the next subscribe cron run.';
@@ -1435,9 +1417,7 @@ async function printSubscribeConnectRequired(
     console.error(`! Could not send OpenClaw cron auth notification: ${notification.reason ?? 'Unknown error'}`);
     return;
   }
-  if (options.cronNotifyRun) {
-    console.log(message);
-  } else if (options.json) {
+  if (options.json) {
     console.log(JSON.stringify({ success: false, error: message }, null, 2));
   } else {
     console.error(`! ${message}`);
@@ -1632,8 +1612,6 @@ async function runLocalHealthCheckup(config: AgentGuardConfig): Promise<HealthCh
     join(homedir(), '.codex', 'skills'),
     join(homedir(), '.openclaw', 'skills'),
     join(homedir(), '.openclaw', 'workspace', 'skills'),
-    join(homedir(), '.qclaw', 'skills'),
-    join(homedir(), '.qclaw', 'workspace', 'skills'),
     join(homedir(), '.hermes', 'skills'),
   ];
   const dshRoots = await discoverDshSelfCheckRoots();
@@ -1861,7 +1839,6 @@ function collectPatrolFiles(additionalRoots: string[] = []): PatrolFileCollectio
     join(homedir(), '.claude'),
     join(homedir(), '.codex'),
     join(homedir(), '.openclaw'),
-    join(homedir(), '.qclaw'),
     join(homedir(), '.hermes'),
     join(homedir(), '.ssh'),
     join(homedir(), '.gnupg'),
@@ -2221,7 +2198,7 @@ function hasScheduledDownloadAndExecute(text: string): boolean {
 }
 
 function touchesAgentRoot(text: string): boolean {
-  return /(?:^|[\\/])\.(?:claude|codex|openclaw|qclaw|hermes|dsh)(?:[\\/]|\b)/i.test(text);
+  return /(?:^|[\\/])\.(?:claude|codex|openclaw|hermes|dsh)(?:[\\/]|\b)/i.test(text);
 }
 
 function readSystemCronText(): CommandTextResult {
