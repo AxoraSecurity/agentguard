@@ -243,8 +243,7 @@ async function main() {
     .command('hermes-daemon', { hidden: true })
     .description('Internal: run the persistent local evaluator for the Hermes plugin')
     .action(async () => {
-      const daemon = await startHermesEvaluatorDaemon();
-      await waitForHermesDaemonShutdown(daemon);
+      await waitForHermesDaemonShutdown(startHermesEvaluatorDaemon());
     });
 
   program
@@ -1206,15 +1205,20 @@ async function main() {
   await program.parseAsync(process.argv);
 }
 
-async function waitForHermesDaemonShutdown(daemon: HermesEvaluatorDaemon): Promise<void> {
+async function waitForHermesDaemonShutdown(starting: Promise<HermesEvaluatorDaemon>): Promise<void> {
+  let daemon: HermesEvaluatorDaemon | undefined;
+  let stopRequested = false;
   const stop = () => {
-    void daemon.close().catch(() => {
+    stopRequested = true;
+    if (daemon) void daemon.close().catch(() => {
       // The daemon's `closed` lifecycle still settles so this hidden process exits.
     });
   };
   process.once('SIGINT', stop);
   process.once('SIGTERM', stop);
   try {
+    daemon = await starting;
+    if (stopRequested) stop();
     await daemon.closed;
   } finally {
     process.off('SIGINT', stop);
@@ -1785,7 +1789,7 @@ function isManagedAgentGuardSkillDir(dir: string): boolean {
     return false;
   }
   const hasAgentGuardIdentity = /^name:\s*agentguard\s*$/im.test(body) &&
-    /(?:Axora|GoPlus) AgentGuard|(?:Axora|GoPlus)Security/i.test(body);
+    /\bAgentGuard\b/i.test(body);
   if (!hasAgentGuardIdentity) return false;
   const expectedScripts = [
     join(dir, 'scripts', 'guard-hook.js'),
